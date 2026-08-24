@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader, Disclaimer } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -74,7 +75,7 @@ function TrackPage() {
   );
 }
 
-function useList(table: "symptoms" | "mood_entries" | "nutrition_entries", userId?: string) {
+function useList<T>(table: "symptoms" | "mood_entries" | "nutrition_entries", userId?: string) {
   return useQuery({
     queryKey: [table, userId],
     enabled: !!userId,
@@ -85,7 +86,7 @@ function useList(table: "symptoms" | "mood_entries" | "nutrition_entries", userI
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+      return (data ?? []) as unknown as T[];
     },
   });
 }
@@ -93,10 +94,10 @@ function useList(table: "symptoms" | "mood_entries" | "nutrition_entries", userI
 function SymptomTab() {
   const { user } = useUser();
   const qc = useQueryClient();
-  const list = useList("symptoms", user?.id);
+  const list = useList<Tables<"symptoms">>("symptoms", user?.id);
   const [name, setName] = useState("");
   const [severity, setSeverity] = useState(5);
-  const [area, setArea] = useState(BODY_AREAS[0]);
+  const [area, setArea] = useState(BODY_AREAS[0]!);
   const [duration, setDuration] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -107,7 +108,7 @@ function SymptomTab() {
         user_id: user!.id,
         name: name.trim(),
         severity,
-        body_area: area,
+        body_area: area ?? null,
         duration: duration || null,
         notes: notes || null,
       });
@@ -215,8 +216,8 @@ function SymptomTab() {
 function MoodTab() {
   const { user } = useUser();
   const qc = useQueryClient();
-  const list = useList("mood_entries", user?.id);
-  const [mood, setMood] = useState(MOODS[0]);
+  const list = useList<Tables<"mood_entries">>("mood_entries", user?.id);
+  const [mood, setMood] = useState(MOODS[0]!);
   const [score, setScore] = useState(7);
   const [energy, setEnergy] = useState(6);
   const [stress, setStress] = useState(4);
@@ -320,8 +321,8 @@ function MoodTab() {
 function NutritionTab() {
   const { user } = useUser();
   const qc = useQueryClient();
-  const list = useList("nutrition_entries", user?.id);
-  const [meal, setMeal] = useState(MEALS[0]);
+  const list = useList<Tables<"nutrition_entries">>("nutrition_entries", user?.id);
+  const [meal, setMeal] = useState(MEALS[0]!);
   const [food, setFood] = useState("");
   const [calories, setCalories] = useState("");
   const [notes, setNotes] = useState("");
@@ -482,7 +483,7 @@ function History({
   empty,
 }: {
   loading: boolean;
-  items: Array<{ id: string; title: string; meta: string; body?: string }>;
+  items: Array<{ id: string; title: string; meta: string; body?: string | undefined }>;
   empty: string;
 }) {
   if (loading)

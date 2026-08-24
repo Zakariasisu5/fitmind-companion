@@ -69,14 +69,14 @@ severity and energy_level are 1-10 integers. Use null for anything not mentioned
       transcription?: string;
       summary?: string;
       response?: string;
-      [key: string]: unknown;
+      [key: string]: string | number | boolean | null | undefined | object;
     }>(raw, { transcription: raw, response: "" });
 
     const { transcription, response, ...extracted } = parsed;
     return {
       transcription: transcription ?? "",
       aiResponse: response ?? "",
-      extracted: extracted as Record<string, unknown>,
+      extracted: JSON.parse(JSON.stringify(extracted)) as Record<string, string | number | boolean | null>,
     };
   });
 

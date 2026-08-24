@@ -179,7 +179,7 @@ function ProfilePage() {
             <Skeleton className="h-10 w-full rounded-2xl" />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {profile.data?.full_name || "No name set"} · {user?.email}
+              {profile.data?.display_name || "No name set"} · {user?.email}
             </p>
           )}
           <div className="flex gap-2">

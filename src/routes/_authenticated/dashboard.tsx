@@ -69,7 +69,7 @@ function Dashboard() {
   return (
     <div className="mx-auto w-full max-w-3xl">
       <PageHeader
-        title={`${greeting()}${user?.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ""}`}
+        title={`${greeting()}${user?.user_metadata?.["display_name"] ? `, ${user.user_metadata["display_name"]}` : ""}`}
         subtitle="Here's how you're doing today."
       />
 
