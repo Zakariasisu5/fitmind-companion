@@ -14,7 +14,279 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          relationship: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          relationship?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          relationship?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_insights: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          source: string | null
+          unit: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          source?: string | null
+          unit?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          source?: string | null
+          unit?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      mood_entries: {
+        Row: {
+          activities: string[] | null
+          anxiety_level: number | null
+          created_at: string
+          energy_level: number | null
+          id: string
+          mood: string
+          mood_score: number
+          notes: string | null
+          sleep_quality: number | null
+          stress_level: number | null
+          triggers: string[] | null
+          user_id: string
+        }
+        Insert: {
+          activities?: string[] | null
+          anxiety_level?: number | null
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          mood: string
+          mood_score?: number
+          notes?: string | null
+          sleep_quality?: number | null
+          stress_level?: number | null
+          triggers?: string[] | null
+          user_id: string
+        }
+        Update: {
+          activities?: string[] | null
+          anxiety_level?: number | null
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          mood?: string
+          mood_score?: number
+          notes?: string | null
+          sleep_quality?: number | null
+          stress_level?: number | null
+          triggers?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_entries: {
+        Row: {
+          calories: number | null
+          created_at: string
+          food_items: string
+          id: string
+          meal_type: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          created_at?: string
+          food_items: string
+          id?: string
+          meal_type: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          created_at?: string
+          food_items?: string
+          id?: string
+          meal_type?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      symptoms: {
+        Row: {
+          body_area: string | null
+          created_at: string
+          duration: string | null
+          id: string
+          name: string
+          notes: string | null
+          severity: number
+          user_id: string
+        }
+        Insert: {
+          body_area?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          severity?: number
+          user_id: string
+        }
+        Update: {
+          body_area?: string | null
+          created_at?: string
+          duration?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          severity?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      voice_logs: {
+        Row: {
+          ai_response: string | null
+          created_at: string
+          duration_seconds: number | null
+          extracted_data: Json | null
+          id: string
+          transcription: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_response?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          extracted_data?: Json | null
+          id?: string
+          transcription?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_response?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          extracted_data?: Json | null
+          id?: string
+          transcription?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
