@@ -16,6 +16,7 @@ import { Route as AuthenticatedBodyRouteImport } from './routes/_authenticated/b
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated/brain'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedTrackRouteImport } from './routes/_authenticated/track'
 import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/voice'
 
@@ -53,6 +54,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTrackRoute = AuthenticatedTrackRouteImport.update({
   id: '/track',
   path: '/track',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/brain': typeof AuthenticatedBrainRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/track': typeof AuthenticatedTrackRoute
   '/voice': typeof AuthenticatedVoiceRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/brain': typeof AuthenticatedBrainRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/track': typeof AuthenticatedTrackRoute
   '/voice': typeof AuthenticatedVoiceRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/track': typeof AuthenticatedTrackRoute
   '/_authenticated/voice': typeof AuthenticatedVoiceRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/brain'
     | '/chat'
     | '/dashboard'
+    | '/profile'
     | '/track'
     | '/voice'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/brain'
     | '/chat'
     | '/dashboard'
+    | '/profile'
     | '/track'
     | '/voice'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_authenticated/brain'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
+    | '/_authenticated/profile'
     | '/_authenticated/track'
     | '/_authenticated/voice'
   fileRoutesById: FileRoutesById
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/track': {
       id: '/_authenticated/track'
       path: '/track'
@@ -209,6 +228,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTrackRoute: typeof AuthenticatedTrackRoute
   AuthenticatedVoiceRoute: typeof AuthenticatedVoiceRoute
 }
@@ -218,6 +238,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTrackRoute: AuthenticatedTrackRoute,
   AuthenticatedVoiceRoute: AuthenticatedVoiceRoute,
 }
