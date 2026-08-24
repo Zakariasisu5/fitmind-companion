@@ -224,7 +224,7 @@ function PatternGame({ onScore }: { onScore: (v: number) => void }) {
   const [sequence, setSequence] = useState<number[]>([]);
   const [input, setInput] = useState<number[]>([]);
   const [showing, setShowing] = useState(false);
-  const [活, setActiveCell] = useState<number | null>(null);
+  const [activeCell, setActiveCell] = useState<number | null>(null);
 
   const play = async (seq: number[]) => {
     setShowing(true);
@@ -272,7 +272,7 @@ function PatternGame({ onScore }: { onScore: (v: number) => void }) {
             type="button"
             onClick={() => tap(i)}
             className={`tap aspect-square rounded-2xl transition-colors ${
-              活 === i ? "calm-gradient" : "bg-secondary"
+              activeCell === i ? "calm-gradient" : "bg-secondary"
             }`}
           />
         ))}

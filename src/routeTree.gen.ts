@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedBodyRouteImport } from './routes/_authenticated/body'
+import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated/brain'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTrackRouteImport } from './routes/_authenticated/track'
@@ -35,6 +36,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedBodyRoute = AuthenticatedBodyRouteImport.update({
   id: '/body',
   path: '/body',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
+  id: '/brain',
+  path: '/brain',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/body': typeof AuthenticatedBodyRoute
+  '/brain': typeof AuthenticatedBrainRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/track': typeof AuthenticatedTrackRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/body': typeof AuthenticatedBodyRoute
+  '/brain': typeof AuthenticatedBrainRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/track': typeof AuthenticatedTrackRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/body': typeof AuthenticatedBodyRoute
+  '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/track': typeof AuthenticatedTrackRoute
@@ -90,15 +99,31 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/body' | '/chat' | '/dashboard' | '/track' | '/voice'
+    | '/'
+    | '/auth'
+    | '/body'
+    | '/brain'
+    | '/chat'
+    | '/dashboard'
+    | '/track'
+    | '/voice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/body' | '/chat' | '/dashboard' | '/track' | '/voice'
+  to:
+    | '/'
+    | '/auth'
+    | '/body'
+    | '/brain'
+    | '/chat'
+    | '/dashboard'
+    | '/track'
+    | '/voice'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/body'
+    | '/_authenticated/brain'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/track'
@@ -141,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBodyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/brain': {
+      id: '/_authenticated/brain'
+      path: '/brain'
+      fullPath: '/brain'
+      preLoaderRoute: typeof AuthenticatedBrainRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chat': {
       id: '/_authenticated/chat'
       path: '/chat'
@@ -174,6 +206,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBodyRoute: typeof AuthenticatedBodyRoute
+  AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTrackRoute: typeof AuthenticatedTrackRoute
@@ -182,6 +215,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBodyRoute: AuthenticatedBodyRoute,
+  AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTrackRoute: AuthenticatedTrackRoute,
