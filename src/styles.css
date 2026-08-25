@@ -145,6 +145,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    background-color: #0d1f1c; /* landing ink — avoids overscroll flash */
   }
 
   body {
