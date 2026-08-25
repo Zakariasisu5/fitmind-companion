@@ -204,3 +204,18 @@
     color-mix(in oklab, var(--color-chart-2) 70%, var(--color-primary))
   );
 }
+
+/* Landing: travelling pulse along an ECG path (pathLength="1") */
+@keyframes ecg-scan {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@utility ecg-pulse {
+  stroke-dasharray: 0.22 0.78;
+  animation: ecg-scan 3.2s linear infinite;
+}
