@@ -1,144 +1,145 @@
-# FitMind Companion
+# FitMind Care
 
-FitMind Care — Mobile-First Rebuild Prompt
+A mobile-first AI health companion that helps you monitor physical and mental well-being through voice logging, symptom tracking, mood monitoring, nutrition logging, cognitive games, and real-time AI insights — all in one privacy-first platform.
 
-Paste this into Lovable (or your AI app builder of choice) to rebuild FitMind Care as a mobile-first, installable web app.
+**Live preview:** [id-preview.lovable.app](https://id-preview--435bd679-1dfa-4ffe-8128-0c36fb3b9292.lovable.app)  
+**Published site:** [well-voice-care.lovable.app](https://well-voice-care.lovable.app)
 
-Prompt
+---
 
-Build FitMind Care, a mobile-first AI health companion web app. This is a rebuild of an existing project — prioritize a clean, touch-friendly mobile experience first, with the desktop layout as a secondary responsive breakpoint (not the other way around).
+## What it does
 
-Core Concept
+FitMind Care is designed as a personal wellness assistant you can keep in your pocket. It prioritizes a clean, thumb-friendly mobile experience and scales up gracefully to desktop.
 
-A comprehensive health companion that helps users monitor and improve physical and mental well-being through voice logging, symptom tracking, mood monitoring, nutrition logging, cognitive training, and real-time AI insights — all in one unified, privacy-first platform.
+- **Unified Dashboard** — A single glance at recent voice logs, symptoms, mood entries, and AI insights.
+- **Voice Health Logger** — Record a voice note, get it transcribed, and receive structured AI wellness feedback.
+- **Symptom Tracker** — Log symptoms with severity, body area, duration, and notes.
+- **Mood & Mental Health** — Track mood, energy, stress, anxiety, sleep quality, and visualize trends over time.
+- **Nutrition Logging** — Log meals with type, food items, calories, and notes.
+- **Interactive Body Map** — Tap body regions (heart, lungs, stomach, head, eyes) to see metrics and AI suggestions.
+- **AI Health Coach** — A conversational wellness assistant that persists chat history and always stays within general wellness guidance.
+- **Medical Report Upload** — Upload CSV reports, extract metrics, and generate AI wellness insights.
+- **Emergency Contacts** — Store personal contacts and view public emergency numbers.
+- **Brain Boost Buddy** — Cognitive mini-games: memory matching, math challenges, and pattern recall.
 
-Mobile-First Requirements (non-negotiable)
+---
 
-Design for a 375–430px viewport first, then scale up. No horizontal scrolling anywhere.
+## Tech stack
 
-Bottom tab navigation (not a sidebar) for the core sections: Dashboard, Voice Log, Track, Chat, Profile. Sidebar nav only appears at desktop breakpoints (≥1024px).
+- **Framework:** [TanStack Start](https://tanstack.com/start) (React 19 + Vite 7)
+- **Routing:** TanStack Router
+- **Data fetching:** TanStack Query
+- **Styling:** Tailwind CSS v4 + shadcn/ui components
+- **Forms:** React Hook Form + Zod
+- **Charts:** Recharts
+- **Backend / Auth / Database:** Lovable Cloud (Supabase) with Row-Level Security on every user-facing table
+- **AI:** Lovable AI Gateway for chat, insights, and structured data extraction
+- **Icons:** Lucide React
 
-Minimum 44×44px touch targets on every interactive element.
+---
 
-Sticky bottom "record" button for voice logging, reachable with one thumb.
+## Project structure
 
-Forms use large inputs, native mobile keyboards (numeric for numbers, etc.), and avoid multi-column layouts on small screens.
+```
+src/
+├── components/          # Shared UI components (AppShell, etc.)
+├── hooks/               # React hooks (useUser, etc.)
+├── integrations/        # Supabase client and auth middleware
+├── lib/                 # AI functions, server helpers, utilities
+├── routes/              # TanStack file routes
+│   ├── index.tsx        # Public landing page
+│   ├── auth.tsx         # Sign-in / sign-up
+│   ├── __root.tsx       # Root layout and head metadata
+│   └── _authenticated/  # Protected app routes
+│       ├── dashboard.tsx
+│       ├── voice.tsx
+│       ├── track.tsx
+│       ├── body.tsx
+│       ├── chat.tsx
+│       ├── brain.tsx
+│       └── profile.tsx
+├── router.tsx           # Router configuration
+├── start.ts             # Start app configuration
+└── styles.css           # Mobile-first design system and theme tokens
 
-Respect safe-area insets (notch/home-indicator) using env(safe-area-inset-*).
+supabase/
+└── migrations/          # Database schema and RLS policies
 
-Make it installable as a PWA: manifest.json, app icons, offline fallback page, and a service worker for basic asset caching.
+public/
+├── manifest.json        # PWA manifest
+├── sw.js                # Service worker for offline caching
+└── icons/               # PWA icons
+```
 
-Test tap states/hover states don't rely on hover-only interactions (no hover-to-reveal menus).
+---
 
-Use skeleton loaders instead of spinners for perceived performance on slower mobile connections.
+## Getting started
 
-Key Features
+### 1. Clone the repository
 
-1. Interactive Body Dashboard Visual body model (Heart, Lungs, Stomach, Head, Eyes) — tap a region to see key metrics (heart rate, BMI, blood oxygen, sleep) and AI-generated suggestions for that area. Triggers a nearby-care map when readings cross emergency thresholds.
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
 
-2. Voice Health Logger Record a voice note describing how you feel. Upload audio to an edge function, transcribe with Whisper, extract structured health data with AI, and store the transcription + extracted data + AI response. Show a searchable history of past logs.
+### 2. Install dependencies
 
-3. Symptoms Tracker Log symptoms with severity, body area, duration, and notes. History view surfaces commonly recurring symptoms and patterns over time.
+This project uses Bun. If you prefer npm, replace `bun` with `npm` below.
 
-4. Mood & Mental Health Tracker Log mood, mood score, energy, stress, anxiety, sleep quality, activities, and triggers. Trend view + daily check-in habit loop.
+```bash
+bun install
+```
 
-5. Nutrition Tracker Log meals with type, food items, calories, and notes. Daily view for calorie awareness and eating pattern habits.
+### 3. Configure environment variables
 
-6. Brain Boost Buddy Cognitive mini-games: Memory Game, Math Challenge, Pattern Game. Progress tracker across sessions.
+Create a `.env` file in the project root and add the values provided by Lovable Cloud:
 
-7. AI Health Chat Conversational assistant for general wellness questions. Persists chat history. Empathetic tone; never diagnoses or prescribes — always general wellness guidance with a clear disclaimer.
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+LOVABLE_API_KEY=your-lovable-api-key
+```
 
-8. Medical Report Upload Upload a CSV medical report, parse sections/metrics/values/units, store extracted metrics, and generate AI insights from them. Validate file type and required fields with clear inline errors.
+> **Important:** Never commit `.env` to Git. It is listed in `.gitignore` by default.
 
-9. Emergency Contacts Store personal emergency contacts (name, phone, relationship) plus a built-in list of public emergency numbers. Integrated with the body dashboard's emergency detection.
+### 4. Run the development server
 
-10. Unified Dashboard One home screen aggregating recent voice logs, symptoms, mood entries, and AI insights — the first thing a user sees after login, optimized for a quick mobile glance.
+```bash
+bun dev
+```
 
-Tech Stack
+The app will be available at `http://localhost:8080`.
 
-Frontend: React 18 + TypeScript + Vite, React Router, TanStack Query for data fetching/caching
+### 5. Build for production
 
-Styling: Tailwind CSS + shadcn/ui components, mobile-first utility classes, Recharts for trend charts (responsive containers)
+```bash
+bun run build
+```
 
-Forms: React Hook Form + Zod validation
+---
 
-Backend: Supabase — Postgres, Auth, Edge Functions, Row-Level Security on every table
+## PWA install
 
-AI: LLM gateway (Gemini or similar) for chat/insights/data extraction; Whisper for voice transcription
+The app is configured as a Progressive Web App:
 
-Maps: Google Maps JS API for nearby emergency care
+- `public/manifest.json` defines the app identity, theme colors, and display mode.
+- `public/sw.js` handles basic asset caching and offline fallback.
+- On supported mobile browsers, you can add FitMind Care to your home screen for a native-like experience.
 
-PWA: manifest.json + service worker for installability and basic offline support
+---
 
-Database Tables (with RLS on all)
+## Medical disclaimer
 
-profiles, voice_logs, symptoms, mood_entries, nutrition_entries, health_metrics, health_insights, chat_messages, emergency_contacts — all keyed to auth.users via user_id, indexed on user_id and created_at.
+FitMind Care is a wellness and health tracking application. It is **not** a substitute for professional medical advice, diagnosis, or treatment. The AI assistant provides general wellness guidance only and never diagnoses conditions or prescribes treatments.
 
-Edge Functions
+---
 
-voice-to-health-data — transcribe audio (Whisper) + extract structured health data
+## Built with Lovable
 
-health-agent — analyze biometrics/history, return suggestions and risk flags
-
-chat — power the AI health assistant
-
-mcp-biometric-sync — placeholder for future wearable integrations (Fitbit, Apple Health, Garmin)
-
-Security & Privacy
-
-Supabase Auth for sessions/sign-up/sign-in
-
-RLS on every user-facing table — users only ever see their own data
-
-Data stored only when explicitly logged or uploaded by the user
-
-AI assistant gives general wellness info only, never diagnosis or prescriptions — show this disclaimer clearly in the chat UI
-
-Visual Identity
-
-Clean, calming, health-app aesthetic — avoid a clinical/cold look. Suggest a soft, rounded design language with a primary accent color (teal/blue-green range reads as "health/calm"), generous whitespace, and clear data visualization for trends. Dark mode supported via a toggle.
-
-Build Order (recommended)
-
-Auth + profile creation
-
-Bottom nav shell + unified dashboard (empty states)
-
-Symptom, mood, nutrition trackers (simplest data-in/data-out loop)
-
-Voice logger + transcription pipeline
-
-Body dashboard with AI suggestions
-
-AI chat
-
-Medical report upload/parsing
-
-Emergency contacts + emergency detection
-
-Brain Boost Buddy games
-
-PWA polish (manifest, icons, offline page, install prompt)
-
-Disclaimer to include in-app: FitMind Care is a wellness and health tracking application, not a substitute for professional medical advice, diagnosis, or treatment.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
+This project was built with [Lovable](https://lovable.dev) — the AI app builder.
 
 Continue developing this project in the [Lovable editor](https://lovable.dev/projects/435bd679-1dfa-4ffe-8128-0c36fb3b9292).
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+- **Ship faster:** describe what you want to build and Lovable handles the code.
+- **Stay in sync:** every change made in Lovable is committed straight to this repository.
+- **Full ownership:** this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
