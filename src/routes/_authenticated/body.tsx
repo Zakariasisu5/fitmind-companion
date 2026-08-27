@@ -16,12 +16,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/body")({
   head: () => ({
     meta: [
-      { title: "Body map — FitMind Care" },
+      { title: "Body map — MindTalk AI" },
       {
         name: "description",
         content: "Tap a body region to review your key metrics and get gentle, AI-generated suggestions.",
       },
-      { property: "og:title", content: "Body map — FitMind Care" },
+      { property: "og:title", content: "Body map — MindTalk AI" },
       { property: "og:description", content: "Heart, lungs, stomach, head and eyes at a glance." },
     ],
   }),

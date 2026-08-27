@@ -26,12 +26,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/_authenticated/track")({
   head: () => ({
     meta: [
-      { title: "Track symptoms, mood & meals — FitMind Care" },
+      { title: "Track symptoms, mood & meals — MindTalk AI" },
       {
         name: "description",
         content: "Log symptoms, mood, energy and meals in seconds and watch your patterns over time.",
       },
-      { property: "og:title", content: "Track symptoms, mood & meals — FitMind Care" },
+      { property: "og:title", content: "Track symptoms, mood & meals — MindTalk AI" },
       { property: "og:description", content: "Fast daily logging for body and mind." },
     ],
   }),

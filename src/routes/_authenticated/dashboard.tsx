@@ -17,12 +17,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Your health dashboard — FitMind Care" },
+      { title: "Your health dashboard — MindTalk AI" },
       {
         name: "description",
         content: "A quick glance at your recent voice logs, symptoms, mood entries and AI insights.",
       },
-      { property: "og:title", content: "Your health dashboard — FitMind Care" },
+      { property: "og:title", content: "Your health dashboard — MindTalk AI" },
       { property: "og:description", content: "Voice logs, symptoms, mood and AI insights in one place." },
     ],
   }),

@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { title: "FitMind Care — your calm AI health companion" },
+      { title: "MindTalk AI — your calm AI health companion" },
       {
         name: "description",
         content:
@@ -89,8 +89,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "theme-color", content: "#0f9b8e" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "FitMind" },
-      { property: "og:title", content: "FitMind Care" },
+      { name: "apple-mobile-web-app-title", content: "MindTalk" },
+      { property: "og:title", content: "MindTalk AI" },
       {
         property: "og:description",
         content: "A calm, mobile-first AI health companion for body and mind.",
@@ -117,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-const themeScript = `(function(){try{var t=localStorage.getItem('fitmind.theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem('mindtalkai.theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (

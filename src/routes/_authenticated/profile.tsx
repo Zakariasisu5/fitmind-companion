@@ -16,12 +16,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "Profile & emergency contacts — FitMind Care" },
+      { title: "Profile & emergency contacts — MindTalk AI" },
       {
         name: "description",
         content: "Manage your profile, emergency contacts and upload medical reports for AI insights.",
       },
-      { property: "og:title", content: "Profile — FitMind Care" },
+      { property: "og:title", content: "Profile — MindTalk AI" },
       { property: "og:description", content: "Your account, contacts and medical report uploads." },
     ],
   }),
@@ -165,7 +165,7 @@ function ProfilePage() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("fitmind.theme", next ? "dark" : "light");
+    localStorage.setItem("mindtalkai.theme", next ? "dark" : "light");
   };
 
   return (

@@ -12,13 +12,13 @@ import { Disclaimer } from "@/components/AppShell";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — FitMind Care" },
+      { title: "Sign in — MindTalk AI" },
       {
         name: "description",
         content:
-          "Sign in to FitMind Care to track symptoms, mood, nutrition and voice health logs in one private space.",
+          "Sign in to MindTalk AI to track symptoms, mood, nutrition and voice health logs in one private space.",
       },
-      { property: "og:title", content: "Sign in — FitMind Care" },
+      { property: "og:title", content: "Sign in — MindTalk AI" },
       {
         property: "og:description",
         content: "Your private AI health companion for body and mind.",
@@ -56,7 +56,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Welcome to FitMind Care!");
+        toast.success("Account created. Welcome to MindTalk AI!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -92,7 +92,7 @@ function AuthPage() {
           <span className="calm-gradient mx-auto mb-4 flex size-14 items-center justify-center rounded-3xl">
             <HeartPulse className="size-7 text-primary-foreground" />
           </span>
-          <h1 className="text-2xl font-semibold tracking-tight">FitMind Care</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">MindTalk AI</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "signin" ? "Welcome back to your health space." : "Create your private health space."}
           </p>

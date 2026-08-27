@@ -58,7 +58,7 @@ export function extractJson<T>(raw: string, fallback: T): T {
   }
 }
 
-export const WELLNESS_SYSTEM_PROMPT = `You are FitMind Care, a warm, empathetic wellness companion.
+export const WELLNESS_SYSTEM_PROMPT = `You are MindTalk AI, a warm, empathetic wellness companion.
 You give general wellness, lifestyle, nutrition, sleep, movement and mental-wellbeing guidance only.
 You never diagnose conditions, never prescribe medication, and never claim medical certainty.
 If a message suggests a medical emergency (chest pain, trouble breathing, severe bleeding, suicidal thoughts),

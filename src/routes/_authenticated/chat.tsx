@@ -13,12 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
     meta: [
-      { title: "AI wellness chat — FitMind Care" },
+      { title: "AI wellness chat — MindTalk AI" },
       {
         name: "description",
         content: "Ask general wellness questions and get warm, practical guidance — never a diagnosis.",
       },
-      { property: "og:title", content: "AI wellness chat — FitMind Care" },
+      { property: "og:title", content: "AI wellness chat — MindTalk AI" },
       { property: "og:description", content: "A calm companion for everyday wellbeing questions." },
     ],
   }),
@@ -79,7 +79,7 @@ function ChatPage() {
 
       <div className="flex-1 space-y-3 px-4 pb-44 lg:pb-28">
         <p className="rounded-2xl bg-secondary px-4 py-3 text-xs leading-relaxed text-secondary-foreground">
-          FitMind Care is a wellness and health tracking application, not a substitute for professional
+          MindTalk AI is a wellness and health tracking application, not a substitute for professional
           medical advice, diagnosis, or treatment. In an emergency, contact local emergency services.
         </p>
 

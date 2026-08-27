@@ -14,12 +14,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/voice")({
   head: () => ({
     meta: [
-      { title: "Voice health log — FitMind Care" },
+      { title: "Voice health log — MindTalk AI" },
       {
         name: "description",
-        content: "Record how you feel and let FitMind Care transcribe and structure your health check-in.",
+        content: "Record how you feel and let MindTalk AI transcribe and structure your health check-in.",
       },
-      { property: "og:title", content: "Voice health log — FitMind Care" },
+      { property: "og:title", content: "Voice health log — MindTalk AI" },
       { property: "og:description", content: "Speak your check-in; we transcribe and summarise it." },
     ],
   }),

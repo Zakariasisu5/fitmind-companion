@@ -4,13 +4,13 @@ import { ArrowUpRight, Brain, HeartPulse, MessageCircleHeart, Mic } from "lucide
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FitMind Care — your calm AI health companion" },
+      { title: "MindTalk AI — your calm AI health companion" },
       {
         name: "description",
         content:
           "Track symptoms, mood, nutrition and voice check-ins in one private, mobile-first wellness app with AI insights.",
       },
-      { property: "og:title", content: "FitMind Care — your calm AI health companion" },
+      { property: "og:title", content: "MindTalk AI — your calm AI health companion" },
       {
         property: "og:description",
         content: "Voice logging, mood and symptom tracking, brain games and AI wellness guidance.",
@@ -71,7 +71,7 @@ function Landing() {
       {/* Top bar */}
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-6 md:px-12">
         <span className="font-mono text-sm font-bold tracking-widest" style={{ color: TEAL }}>
-          FITMIND_CARE
+          MINDTALK_AI
         </span>
         <Link
           to="/auth"
@@ -216,11 +216,11 @@ function Landing() {
       <footer className="border-t" style={{ borderColor: PANEL }}>
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-5 py-6 md:flex-row md:items-center md:justify-between md:px-12">
           <p className="max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-widest" style={{ color: `${PAPER}59` }}>
-            Medical disclaimer — FitMind Care is for informational purposes only and is not a
+            Medical disclaimer — MindTalk AI is for informational purposes only and is not a
             substitute for professional medical advice, diagnosis, or treatment.
           </p>
           <p className="shrink-0 font-mono text-[10px] uppercase tracking-widest" style={{ color: `${TEAL}80` }}>
-            © 2026 FitMind Care
+            © 2026 MindTalk AI
           </p>
         </div>
       </footer>
