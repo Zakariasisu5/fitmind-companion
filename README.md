@@ -1,4 +1,4 @@
-# FitMind Care
+# MindTalk AI
 
 A mobile-first AI health companion that helps you monitor physical and mental well-being through voice logging, symptom tracking, mood monitoring, nutrition logging, cognitive games, and real-time AI insights — all in one privacy-first platform.
 
@@ -9,7 +9,7 @@ A mobile-first AI health companion that helps you monitor physical and mental we
 
 ## What it does
 
-FitMind Care is designed as a personal wellness assistant you can keep in your pocket. It prioritizes a clean, thumb-friendly mobile experience and scales up gracefully to desktop.
+MindTalk AI is designed as a personal wellness assistant you can keep in your pocket. It prioritizes a clean, thumb-friendly mobile experience and scales up gracefully to desktop.
 
 - **Unified Dashboard** — A single glance at recent voice logs, symptoms, mood entries, and AI insights.
 - **Voice Health Logger** — Record a voice note, get it transcribed, and receive structured AI wellness feedback.
@@ -124,13 +124,13 @@ The app is configured as a Progressive Web App:
 
 - `public/manifest.json` defines the app identity, theme colors, and display mode.
 - `public/sw.js` handles basic asset caching and offline fallback.
-- On supported mobile browsers, you can add FitMind Care to your home screen for a native-like experience.
+- On supported mobile browsers, you can add MindTalk AI to your home screen for a native-like experience.
 
 ---
 
 ## Medical disclaimer
 
-FitMind Care is a wellness and health tracking application. It is **not** a substitute for professional medical advice, diagnosis, or treatment. The AI assistant provides general wellness guidance only and never diagnoses conditions or prescribes treatments.
+MindTalk AI is a wellness and health tracking application. It is **not** a substitute for professional medical advice, diagnosis, or treatment. The AI assistant provides general wellness guidance only and never diagnoses conditions or prescribes treatments.
 
 ---
 

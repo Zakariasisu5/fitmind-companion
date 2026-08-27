@@ -1,4 +1,4 @@
-const CACHE = "fitmind-v1";
+const CACHE = "mindtalkai-v1";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {

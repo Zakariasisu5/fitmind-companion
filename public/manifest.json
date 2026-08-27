@@ -1,6 +1,6 @@
 {
-  "name": "FitMind Care",
-  "short_name": "FitMind",
+  "name": "MindTalk AI",
+  "short_name": "MindTalk",
   "description": "A calm, mobile-first AI health companion for body and mind.",
   "start_url": "/dashboard",
   "scope": "/",

@@ -9,19 +9,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/_authenticated/brain")({
   head: () => ({
     meta: [
-      { title: "Brain Boost Buddy — FitMind Care" },
+      { title: "Brain Boost Buddy — MindTalk AI" },
       {
         name: "description",
         content: "Short memory, math and pattern games to keep your mind sharp, with progress tracking.",
       },
-      { property: "og:title", content: "Brain Boost Buddy — FitMind Care" },
+      { property: "og:title", content: "Brain Boost Buddy — MindTalk AI" },
       { property: "og:description", content: "Three quick cognitive games for daily focus." },
     ],
   }),
   component: BrainPage,
 });
 
-const STORE_KEY = "fitmind.brain.scores";
+const STORE_KEY = "mindtalkai.brain.scores";
 
 type Scores = { memory: number; math: number; pattern: number };
 

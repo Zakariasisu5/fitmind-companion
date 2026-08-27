@@ -41,7 +41,7 @@ export function AppShell() {
           <span className="calm-gradient flex size-9 items-center justify-center rounded-2xl">
             <HeartPulse className="size-5 text-primary-foreground" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">FitMind Care</span>
+          <span className="text-lg font-semibold tracking-tight">MindTalk AI</span>
         </div>
         <nav className="space-y-1">
           {[...TABS, ...EXTRA].map((item) => (
@@ -132,7 +132,7 @@ export function PageHeader({
 export function Disclaimer({ className }: { className?: string }) {
   return (
     <p className={cn("px-1 text-xs leading-relaxed text-muted-foreground", className)}>
-      FitMind Care is a wellness and health tracking application, not a substitute for professional
+      MindTalk AI is a wellness and health tracking application, not a substitute for professional
       medical advice, diagnosis, or treatment.
     </p>
   );
