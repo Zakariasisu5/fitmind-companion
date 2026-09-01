@@ -10,12 +10,16 @@ import {
 
 const CHAT_MODEL = "google/gemini-3.7-flash";
 
+const LANGUAGE_NAMES = { en: "English", tw: "Twi (Akan)", dag: "Dagbani" } as const;
+type LangCode = keyof typeof LANGUAGE_NAMES;
+
 export const askHealthCoach = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z
       .object({
         message: z.string().min(1).max(4000),
+        language: z.enum(["en", "tw", "dag"]).default("en"),
         history: z
           .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
           .max(20)
@@ -24,14 +28,32 @@ export const askHealthCoach = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
+    const language = data.language as LangCode;
+    const localised = language !== "en";
+
+    const systemPrompt = localised
+      ? `${WELLNESS_SYSTEM_PROMPT}
+The user reads ${LANGUAGE_NAMES[language]}. There is no natural ${LANGUAGE_NAMES[language]} voice available, so audio is spoken in English.
+Respond ONLY with JSON: {"reply":"your answer in ${LANGUAGE_NAMES[language]}","english":"the same answer in simple spoken English"}`
+      : WELLNESS_SYSTEM_PROMPT;
+
     const messages: GatewayMessage[] = [
-      { role: "system", content: WELLNESS_SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       ...data.history.map((m) => ({ role: m.role, content: m.content }) as GatewayMessage),
       { role: "user", content: data.message },
     ];
-    const reply = await callGateway({ model: CHAT_MODEL, messages });
-    return { reply: reply || "I'm not sure how to answer that right now." };
+    const raw = await callGateway({ model: CHAT_MODEL, messages });
+
+    if (!localised) {
+      const reply = raw || "I'm not sure how to answer that right now.";
+      return { reply, audioText: reply, spokenLanguage: "en" as const };
+    }
+
+    const parsed = extractJson<{ reply?: string; english?: string }>(raw, { reply: raw });
+    const reply = parsed.reply || raw || "I'm not sure how to answer that right now.";
+    return { reply, audioText: parsed.english || reply, spokenLanguage: "en" as const };
   });
+
 
 export const analyzeVoiceNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -87,18 +109,26 @@ export const generateInsights = createServerFn({ method: "POST" })
       .object({
         context: z.string().min(1).max(8000),
         focus: z.string().max(200).default("overall wellbeing"),
+        language: z.enum(["en", "tw", "dag"]).default("en"),
       })
       .parse(data),
   )
   .handler(async ({ data }) => {
+    const language = data.language as LangCode;
+    const localised = language !== "en";
     const raw = await callGateway({
       model: CHAT_MODEL,
       messages: [
         {
           role: "system",
           content: `${WELLNESS_SYSTEM_PROMPT}
-Respond ONLY with JSON: {"insights":[{"title":"","content":"","category":"","severity":"info|watch|urgent"}]}
-Return 2-3 short, actionable, non-diagnostic insights.`,
+Respond ONLY with JSON: {"insights":[{"title":"","content":"","category":"","severity":"info|watch|urgent","spoken":""}]}
+Return 2-3 short, actionable, non-diagnostic insights.
+${
+  localised
+    ? `Write "title" and "content" in ${LANGUAGE_NAMES[language]}, and "spoken" as the same insight in simple spoken English (audio is English only).`
+    : `Write "spoken" as a one-or-two sentence spoken version of the insight in simple English.`
+}`,
         },
         {
           role: "user",
@@ -108,7 +138,14 @@ Return 2-3 short, actionable, non-diagnostic insights.`,
     });
 
     const parsed = extractJson<{
-      insights?: Array<{ title: string; content: string; category?: string; severity?: string }>;
+      insights?: Array<{
+        title: string;
+        content: string;
+        category?: string;
+        severity?: string;
+        spoken?: string;
+      }>;
     }>(raw, { insights: [] });
     return { insights: parsed.insights ?? [] };
   });
+
