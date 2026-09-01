@@ -109,18 +109,26 @@ export const generateInsights = createServerFn({ method: "POST" })
       .object({
         context: z.string().min(1).max(8000),
         focus: z.string().max(200).default("overall wellbeing"),
+        language: z.enum(["en", "tw", "dag"]).default("en"),
       })
       .parse(data),
   )
   .handler(async ({ data }) => {
+    const language = data.language as LangCode;
+    const localised = language !== "en";
     const raw = await callGateway({
       model: CHAT_MODEL,
       messages: [
         {
           role: "system",
           content: `${WELLNESS_SYSTEM_PROMPT}
-Respond ONLY with JSON: {"insights":[{"title":"","content":"","category":"","severity":"info|watch|urgent"}]}
-Return 2-3 short, actionable, non-diagnostic insights.`,
+Respond ONLY with JSON: {"insights":[{"title":"","content":"","category":"","severity":"info|watch|urgent","spoken":""}]}
+Return 2-3 short, actionable, non-diagnostic insights.
+${
+  localised
+    ? `Write "title" and "content" in ${LANGUAGE_NAMES[language]}, and "spoken" as the same insight in simple spoken English (audio is English only).`
+    : `Write "spoken" as a one-or-two sentence spoken version of the insight in simple English.`
+}`,
         },
         {
           role: "user",
@@ -130,7 +138,14 @@ Return 2-3 short, actionable, non-diagnostic insights.`,
     });
 
     const parsed = extractJson<{
-      insights?: Array<{ title: string; content: string; category?: string; severity?: string }>;
+      insights?: Array<{
+        title: string;
+        content: string;
+        category?: string;
+        severity?: string;
+        spoken?: string;
+      }>;
     }>(raw, { insights: [] });
     return { insights: parsed.insights ?? [] };
   });
+
