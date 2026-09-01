@@ -65,7 +65,7 @@ function Ecg() {
 function Landing() {
   return (
     <div
-      className="px-safe pb-safe flex min-h-screen w-full flex-col"
+      className="px-safe pb-safe flex min-h-screen w-full flex-col overflow-x-hidden"
       style={{ backgroundColor: INK, color: PAPER }}
     >
       {/* Top bar */}
@@ -156,7 +156,7 @@ function Landing() {
         </div>
 
         {/* 40% — live vitals panel */}
-        <div className="relative lg:col-span-4">
+        <div className="relative overflow-hidden lg:col-span-4 lg:overflow-visible">
           <div
             aria-hidden
             className="absolute -right-20 -top-20 size-64 rounded-full blur-3xl"
