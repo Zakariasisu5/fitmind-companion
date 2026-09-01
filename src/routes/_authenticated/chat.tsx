@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { askHealthCoach } from "@/lib/ai.functions";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader } from "@/components/AppShell";
+import { LanguagePicker, MuteToggle, SpeakButton, VoiceFallbackNotice } from "@/components/SpeechControls";
+import { useSpeech } from "@/lib/speech";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/chat")({
@@ -29,6 +31,7 @@ function ChatPage() {
   const { user } = useUser();
   const qc = useQueryClient();
   const ask = useServerFn(askHealthCoach);
+  const { speak, stop, muted, language } = useSpeech();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -58,10 +61,20 @@ function ChatPage() {
       }));
       await supabase.from("chat_messages").insert({ user_id: user!.id, role: "user", content: text });
       await qc.invalidateQueries({ queryKey: ["chat_messages"] });
-      const { reply } = await ask({ data: { message: text, history } });
-      await supabase.from("chat_messages").insert({ user_id: user!.id, role: "assistant", content: reply });
+      const { reply, audioText } = await ask({ data: { message: text, history, language } });
+      const { data: inserted } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user!.id, role: "assistant", content: reply })
+        .select("id")
+        .maybeSingle();
+      return { reply, audioText, id: inserted?.id ?? "latest" };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["chat_messages"] }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["chat_messages"] });
+      if (!muted && result) {
+        void speak(result.reply, { id: result.id, audioText: result.audioText });
+      }
+    },
     onError: (e) => toast.error(e instanceof Error ? e.message : "The assistant is unavailable"),
   });
 
@@ -69,19 +82,37 @@ function ChatPage() {
     e.preventDefault();
     const text = input.trim();
     if (!text || send.isPending) return;
+    stop();
     setInput("");
     send.mutate(text);
   };
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-      <PageHeader title="Wellness chat" subtitle="General guidance — never a diagnosis." />
+      <PageHeader
+        title="Wellness chat"
+        subtitle="Replies are read aloud automatically."
+        action={
+          <div className="flex items-center gap-2">
+            <LanguagePicker />
+            <MuteToggle />
+          </div>
+        }
+      />
 
       <div className="flex-1 space-y-3 px-4 pb-44 lg:pb-28">
         <p className="rounded-2xl bg-secondary px-4 py-3 text-xs leading-relaxed text-secondary-foreground">
           MindTalk AI is a wellness and health tracking application, not a substitute for professional
           medical advice, diagnosis, or treatment. In an emergency, contact local emergency services.
         </p>
+
+        <VoiceFallbackNotice />
+
+        {muted ? (
+          <p className="px-1 text-xs text-muted-foreground">
+            Voice replies are muted. Tap the speaker icon to hear answers spoken aloud.
+          </p>
+        ) : null}
 
         {messages.isLoading ? (
           <>
@@ -93,13 +124,16 @@ function ChatPage() {
         {(messages.data ?? []).map((m) => (
           <div
             key={m.id}
-            className={`max-w-[85%] whitespace-pre-wrap rounded-3xl px-4 py-3 text-sm ${
-              m.role === "user"
-                ? "ml-auto bg-primary text-primary-foreground"
-                : "soft-card mr-auto"
-            }`}
+            className={`flex max-w-[92%] items-start gap-1 ${m.role === "user" ? "ml-auto" : "mr-auto"}`}
           >
-            {m.content}
+            <div
+              className={`whitespace-pre-wrap rounded-3xl px-4 py-3 text-sm ${
+                m.role === "user" ? "bg-primary text-primary-foreground" : "soft-card"
+              }`}
+            >
+              {m.content}
+            </div>
+            {m.role === "assistant" ? <SpeakButton id={m.id} text={m.content} /> : null}
           </div>
         ))}
 
