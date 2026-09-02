@@ -10,6 +10,7 @@ import { useUser } from "@/hooks/useUser";
 import { PageHeader, Disclaimer } from "@/components/AppShell";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VoiceLogSpeaker } from "@/components/VoiceLogSpeaker";
 
 export const Route = createFileRoute("/_authenticated/voice")({
   head: () => ({
@@ -145,9 +146,18 @@ function VoicePage() {
               </p>
               <p className="text-sm">{log.transcription}</p>
               {log.ai_response ? (
-                <p className="rounded-2xl bg-secondary p-3 text-sm text-secondary-foreground">
-                  {log.ai_response}
-                </p>
+                <div className="rounded-2xl bg-secondary p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="flex-1 text-sm text-secondary-foreground">
+                      {log.ai_response}
+                    </p>
+                    <VoiceLogSpeaker
+                      logId={log.id}
+                      text={log.ai_response}
+                      language="en"
+                    />
+                  </div>
+                </div>
               ) : null}
             </article>
           ))

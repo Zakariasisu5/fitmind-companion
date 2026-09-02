@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader, Disclaimer } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VoiceLogSpeaker } from "@/components/VoiceLogSpeaker";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -116,9 +117,21 @@ function Dashboard() {
             <SkeletonList />
           ) : data?.voice.length ? (
             data.voice.map((v) => (
-              <div key={v.id} className="soft-card p-4">
+              <div key={v.id} className="soft-card space-y-2 p-4">
                 <p className="line-clamp-3 text-sm">{v.transcription || "No transcript"}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
+                {v.ai_response && (
+                  <div className="flex items-start justify-between gap-3 rounded-2xl bg-secondary/50 p-3">
+                    <p className="flex-1 text-sm text-secondary-foreground line-clamp-2">
+                      {v.ai_response}
+                    </p>
+                    <VoiceLogSpeaker
+                      logId={v.id}
+                      text={v.ai_response}
+                      language="en"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
                   {new Date(v.created_at).toLocaleString()}
                 </p>
               </div>
