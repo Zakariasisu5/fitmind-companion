@@ -101,6 +101,7 @@ export function isWavFormat(buffer: Buffer): boolean {
 
 /**
  * Convert audio to WAV only if necessary
+ * In serverless environments (Vercel), skip conversion
  */
 export async function ensureWavFormat(
   audioBuffer: Buffer,
@@ -109,6 +110,15 @@ export async function ensureWavFormat(
   // If already WAV, return as-is
   if (isWavFormat(audioBuffer)) {
     console.log("[AudioConvert] Audio is already in WAV format");
+    return audioBuffer;
+  }
+  
+  // Check if we're in a serverless environment (Vercel, Netlify, etc.)
+  const isServerless = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME;
+  
+  if (isServerless) {
+    console.warn("[AudioConvert] Serverless environment detected, skipping conversion");
+    console.warn("[AudioConvert] Khaya will attempt to handle the original format");
     return audioBuffer;
   }
   
