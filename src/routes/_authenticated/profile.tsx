@@ -47,6 +47,8 @@ function ProfilePage() {
   );
   const [form, setForm] = useState({ name: "", phone: "", relationship: "" });
   const [reportInsights, setReportInsights] = useState<string[]>([]);
+  const [reportSpoken, setReportSpoken] = useState("");
+  const { speak, muted, language } = useSpeech();
 
   const profile = useQuery({
     queryKey: ["profile", user?.id],
