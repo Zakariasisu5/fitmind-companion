@@ -6,7 +6,7 @@
  * - Twi/Dagbani → GhanaNLP ASR
  */
 
-import { transcribeAudio as ghananlpTranscribe, type GhanaNLPLanguage } from "./ghananlp.server";
+import { transcribeAudio as khayaTranscribe, type AppLangCode } from "./khaya.server";
 
 export type TranscriptionLanguage = "en" | "tw" | "ak" | "fat" | "dag" | "dga" | "gur" | "kus" | "ksm" | "ee" | "ga" | "gon" | "kpo" | "nic";
 
@@ -33,7 +33,7 @@ export async function transcribeAudio(
   if (language === "en") {
     return await transcribeEnglish(audioBase64, format);
   } else {
-    return await transcribeLocalLanguage(audioBase64, language as GhanaNLPLanguage, format);
+    return await transcribeLocalLanguage(audioBase64, language as AppLangCode, format);
   }
 }
 
@@ -112,15 +112,15 @@ async function transcribeEnglish(
 }
 
 /**
- * Transcribe Twi or Dagbani audio using GhanaNLP
+ * Transcribe Twi or Dagbani audio using Khaya
  */
 async function transcribeLocalLanguage(
   audioBase64: string,
-  language: GhanaNLPLanguage,
+  language: AppLangCode,
   format: string
 ): Promise<TranscriptionResult> {
   try {
-    const result = await ghananlpTranscribe(audioBase64, language, format);
+    const result = await khayaTranscribe(audioBase64, language, format);
     
     // Add warning if confidence is low
     let warning: string | undefined;
@@ -133,19 +133,19 @@ async function transcribeLocalLanguage(
       language: language as TranscriptionLanguage,
       confidence: result.confidence,
       verified: result.verified,
-      provider: "ghananlp",
+      provider: "khaya",
       warning,
     };
   } catch (error) {
-    console.error(`[Transcription] GhanaNLP ${language} transcription error:`, error);
+    console.error(`[Transcription] Khaya ${language} transcription error:`, error);
     
     // Return a fallback result rather than throwing
     return {
-      text: `[Transcription failed for ${language} - GhanaNLP unavailable]`,
+      text: `[Transcription failed for ${language} - Khaya unavailable]`,
       language: language as TranscriptionLanguage,
       verified: false,
-      provider: "ghananlp",
-      warning: `GhanaNLP transcription failed: ${(error as Error).message}. Please try again or switch to English.`,
+      provider: "khaya",
+      warning: `Khaya transcription failed: ${(error as Error).message}. Please try again or switch to English.`,
     };
   }
 }

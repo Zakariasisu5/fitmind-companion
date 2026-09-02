@@ -16,8 +16,8 @@ import {
 import {
   translateText,
   getCachedOrGenerateTTS,
-  type GhanaNLPLanguage,
-} from "@/lib/ghananlp.server";
+  type AppLangCode,
+} from "@/lib/khaya.server";
 
 const LANGUAGE_NAMES = { 
   en: "English", 
@@ -108,12 +108,11 @@ export const askHealthCoach = createServerFn({ method: "POST" })
     let messageForAI = data.message;
     if (localised) {
       try {
-        const translation = await translateText(
+        messageForAI = await translateText(
           data.message,
-          language as GhanaNLPLanguage,
-          "en"
+          language as AppLangCode,
+          "toEnglish"
         );
-        messageForAI = translation.translatedText;
         console.log(`[Chat] Translated ${language} → en for AI reasoning`);
       } catch (error) {
         console.error("[Chat] Translation to English failed:", error);
@@ -130,11 +129,11 @@ export const askHealthCoach = createServerFn({ method: "POST" })
 
     // For non-English, translate response back to user's language
     try {
-      const translation = await translateText(raw, "en", language as GhanaNLPLanguage);
+      const translatedReply = await translateText(raw, language as AppLangCode, "toLocal");
       console.log(`[Chat] Translated en → ${language} for user`);
       
       return {
-        reply: translation.translatedText,
+        reply: translatedReply,
         audioText: raw, // Keep English for TTS (will be handled separately)
         spokenLanguage: language as const,
         translated: true, // Flag to show "translated" tag in UI
@@ -449,7 +448,7 @@ export const generateSpeech = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const language = data.language as GhanaNLPLanguage;
+    const language = data.language as AppLangCode;
     
     // For English, use browser TTS or standard TTS provider
     if (language === "en") {
@@ -490,11 +489,11 @@ export const generateSpeech = createServerFn({ method: "POST" })
   });
 
 /**
- * Check GhanaNLP service status
+ * Check Khaya service status
  */
-export const checkGhanaNLPStatus = createServerFn({ method: "POST" })
+export const checkKhayaStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
-    const { checkGhanaNLPStatus } = await import("@/lib/ghananlp.server");
-    return await checkGhanaNLPStatus();
+    const { checkKhayaStatus } = await import("@/lib/khaya.server");
+    return await checkKhayaStatus();
   });
