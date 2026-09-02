@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader, Disclaimer } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MuteToggle, SpeakButton } from "@/components/SpeechControls";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
