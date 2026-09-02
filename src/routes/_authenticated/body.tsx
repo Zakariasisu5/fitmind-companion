@@ -277,12 +277,21 @@ function BodyPage() {
 
         {suggestions.length ? (
           <div className="soft-card space-y-2 p-4">
-            <p className="text-sm font-semibold">Suggestions for your {active.label.toLowerCase()}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold">
+                Suggestions for your {active.label.toLowerCase()}
+              </p>
+              <div className="flex items-center gap-1">
+                <SpeakButton id="body-insights" text={suggestions.join(" ")} audioText={spoken} />
+                <MuteToggle />
+              </div>
+            </div>
             {suggestions.map((s) => (
               <p key={s} className="text-sm text-muted-foreground">
                 {s}
               </p>
             ))}
+            <VoiceFallbackNotice />
           </div>
         ) : null}
 
