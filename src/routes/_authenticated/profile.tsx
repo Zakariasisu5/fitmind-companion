@@ -142,8 +142,13 @@ function ProfilePage() {
       if (error) throw error;
 
       const context = valid.map((v) => `${v.section} ${v.metric}: ${v.value}${v.unit}`).join("\n");
-      const { insights: result } = await insights({ data: { context, focus: "medical report review" } });
+      const { insights: result } = await insights({
+        data: { context, focus: "medical report review", language },
+      });
       setReportInsights(result.map((r) => `${r.title}: ${r.content}`));
+      const audioText = result.map((r) => r.spoken?.trim() || `${r.title}. ${r.content}`).join(" ");
+      setReportSpoken(audioText);
+      if (audioText && !muted) void speak(audioText, { id: "report-insights" });
       if (result.length) {
         await supabase.from("health_insights").insert(
           result.map((r) => ({
