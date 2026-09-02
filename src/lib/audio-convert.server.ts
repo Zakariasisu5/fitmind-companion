@@ -6,8 +6,12 @@
  */
 
 import ffmpeg from "fluent-ffmpeg";
-import ffmpegPath from "ffmpeg-static";
+import { createRequire } from "module";
 import { PassThrough } from "stream";
+
+// Use createRequire to load ffmpeg-static in ESM context (fixes Vercel build)
+const require = createRequire(import.meta.url);
+const ffmpegPath: string = require("ffmpeg-static");
 
 // Set ffmpeg binary path
 if (ffmpegPath) {

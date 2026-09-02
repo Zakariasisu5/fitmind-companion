@@ -54,6 +54,48 @@ function getModel(
 }
 
 /**
+ * Generate content with automatic fallback to alternative models
+ * Retries once on 503 errors, then tries fallback models in order
+ */
+async function generateWithFallback(
+  systemPrompt: string,
+  callFn: (model: GenerativeModel) => Promise<string>
+): Promise<string> {
+  const models = [AI_CONFIG.defaultModel, ...AI_CONFIG.fallbackModels];
+  let lastError: unknown;
+
+  for (const modelName of models) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        console.log(`[AI] Trying model: ${modelName} (attempt ${attempt + 1}/2)`);
+        const model = getModel(modelName, systemPrompt);
+        const result = await callFn(model);
+        console.log(`[AI] Success with model: ${modelName}`);
+        return result;
+      } catch (error) {
+        lastError = error;
+        const status = (error as { status?: number })?.status;
+
+        if (status === 503 && attempt === 0) {
+          // Transient error - wait briefly and retry same model once
+          console.warn(`[AI] Model ${modelName} returned 503, retrying after delay...`);
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
+        }
+        
+        // 404 (bad model name), repeated 503, or other error - move to next model
+        console.warn(`[AI] Model ${modelName} failed (status ${status}), trying next model...`);
+        break;
+      }
+    }
+  }
+
+  // All models failed
+  console.error('[AI] All models failed:', lastError);
+  throw lastError;
+}
+
+/**
  * Cache for recent AI responses to avoid redundant API calls
  * Key format: "cacheKey:dataHash"
  */
@@ -121,48 +163,58 @@ export async function chatWithAI(
   }
 
   try {
-    const model = getModel(AI_CONFIG.defaultModel, CHAT_SYSTEM_PROMPT);
+    return await generateWithFallback(CHAT_SYSTEM_PROMPT, async (model) => {
+      // Build context string if health data provided
+      let contextString = "";
+      if (context) {
+        const parts: string[] = [];
+        if (context.symptoms && Array.isArray(context.symptoms) && context.symptoms.length > 0) {
+          parts.push(`Recent symptoms: ${context.symptoms.length} entries tracked`);
+        }
+        if (context.mood && Array.isArray(context.mood) && context.mood.length > 0) {
+          parts.push(`Recent mood: ${context.mood.length} entries logged`);
+        }
+        if (context.recentLogs && Array.isArray(context.recentLogs) && context.recentLogs.length > 0) {
+          parts.push(`Recent voice logs: ${context.recentLogs.length} entries`);
+        }
+        if (parts.length > 0) {
+          contextString = `\n\nUser's recent health data context: ${parts.join(", ")}`;
+        }
+      }
 
-    // Build context string if health data provided
-    let contextString = "";
-    if (context) {
-      const parts: string[] = [];
-      if (context.symptoms && Array.isArray(context.symptoms) && context.symptoms.length > 0) {
-        parts.push(`Recent symptoms: ${context.symptoms.length} entries tracked`);
-      }
-      if (context.mood && Array.isArray(context.mood) && context.mood.length > 0) {
-        parts.push(`Recent mood: ${context.mood.length} entries logged`);
-      }
-      if (context.recentLogs && Array.isArray(context.recentLogs) && context.recentLogs.length > 0) {
-        parts.push(`Recent voice logs: ${context.recentLogs.length} entries`);
-      }
-      if (parts.length > 0) {
-        contextString = `\n\nUser's recent health data context: ${parts.join(", ")}`;
-      }
-    }
+      const userMessage = message + contextString;
 
-    const userMessage = message + contextString;
-
-    // Start chat with history
-    const chat = model.startChat({
-      history: conversationHistory.map(msg => ({
+      // Validate and clean conversation history
+      // Gemini requires the first message to have role 'user'
+      let cleanedHistory = conversationHistory.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.parts }],
-      })),
-      generationConfig: {
-        temperature: AI_CONFIG.temperature.chat,
-        maxOutputTokens: AI_CONFIG.maxTokens.chat,
-      },
+      }));
+
+      // If history starts with 'model', remove it or prepend a user message
+      if (cleanedHistory.length > 0 && cleanedHistory[0].role === 'model') {
+        console.warn('[AI] Removing leading model message from history (Gemini requires first message to be from user)');
+        cleanedHistory = cleanedHistory.slice(1);
+      }
+
+      // Start chat with history
+      const chat = model.startChat({
+        history: cleanedHistory,
+        generationConfig: {
+          temperature: AI_CONFIG.temperature.chat,
+          maxOutputTokens: AI_CONFIG.maxTokens.chat,
+        },
+      });
+
+      const result = await chat.sendMessage(userMessage);
+      const response = result.response.text();
+
+      if (!response) {
+        throw new AiError(500, "AI returned an empty response");
+      }
+
+      return response;
     });
-
-    const result = await chat.sendMessage(userMessage);
-    const response = result.response.text();
-
-    if (!response) {
-      throw new AiError(500, "AI returned an empty response");
-    }
-
-    return response;
   } catch (error) {
     console.error("Gemini chat error:", error);
     
@@ -212,18 +264,17 @@ export async function generateHealthInsights(data: {
   }
 
   try {
-    const model = getModel(AI_CONFIG.defaultModel, INSIGHTS_SYSTEM_PROMPT);
+    return await generateWithFallback(INSIGHTS_SYSTEM_PROMPT, async (model) => {
+      // Build data summary
+      const summary = {
+        symptoms: data.symptoms?.length ?? 0,
+        mood: data.mood?.length ?? 0,
+        nutrition: data.nutrition?.length ?? 0,
+        voiceLogs: data.voiceLogs?.length ?? 0,
+        timeWindow: data.timeWindow ?? "recent",
+      };
 
-    // Build data summary
-    const summary = {
-      symptoms: data.symptoms?.length ?? 0,
-      mood: data.mood?.length ?? 0,
-      nutrition: data.nutrition?.length ?? 0,
-      voiceLogs: data.voiceLogs?.length ?? 0,
-      timeWindow: data.timeWindow ?? "recent",
-    };
-
-    const prompt = `Analyze this health tracking data and generate 2-4 insights:
+      const prompt = `Analyze this health tracking data and generate 2-4 insights:
 
 Data Summary:
 - Symptoms tracked: ${summary.symptoms}
@@ -247,26 +298,27 @@ Generate insights as a JSON array with this structure:
 
 Focus on patterns, connections between data points, and gentle suggestions. Use "follow_up" priority if something warrants professional consultation.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: AI_CONFIG.temperature.insights,
-        maxOutputTokens: AI_CONFIG.maxTokens.insights,
-      },
-    });
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: AI_CONFIG.temperature.insights,
+          maxOutputTokens: AI_CONFIG.maxTokens.insights,
+        },
+      });
 
-    const response = result.response.text();
-    const insights = extractJson<Array<{ title: string; content: string; category: string; priority: "info" | "suggestion" | "follow_up" }>>(
-      response,
-      []
-    );
+      const response = result.response.text();
+      const insights = extractJson<Array<{ title: string; content: string; category: string; priority: "info" | "suggestion" | "follow_up" }>>(
+        response,
+        []
+      );
 
-    // Cache the result
-    if (insights.length > 0) {
-      cacheResponse(cacheKey, JSON.stringify(insights));
-    }
+      // Cache the result
+      if (insights.length > 0) {
+        cacheResponse(cacheKey, JSON.stringify(insights));
+      }
 
-    return insights;
+      return JSON.stringify(insights);
+    }).then(responseStr => JSON.parse(responseStr) as Array<{ title: string; content: string; category: string; priority: "info" | "suggestion" | "follow_up" }>);
   } catch (error) {
     console.error("Gemini insights generation error:", error);
     throw new AiError(500, "Unable to generate health insights right now. Please try again later.");
@@ -299,9 +351,8 @@ export async function extractVoiceLogData(
   }
 
   try {
-    const model = getModel(AI_CONFIG.defaultModel, VOICE_EXTRACTION_SYSTEM_PROMPT);
-
-    const prompt = `Extract structured health information from this voice log transcript:
+    return await generateWithFallback(VOICE_EXTRACTION_SYSTEM_PROMPT, async (model) => {
+      const prompt = `Extract structured health information from this voice log transcript:
 
 "${transcript}"
 
@@ -314,19 +365,20 @@ Return ONLY valid JSON (no other text):
   "key_phrases": ["important phrase 1"]
 }`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: AI_CONFIG.temperature.extraction,
-        maxOutputTokens: AI_CONFIG.maxTokens.extraction,
-        responseMimeType: "application/json",
-      },
-    });
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: AI_CONFIG.temperature.extraction,
+          maxOutputTokens: AI_CONFIG.maxTokens.extraction,
+          responseMimeType: "application/json",
+        },
+      });
 
-    const response = result.response.text();
-    const extracted = extractJson(response, defaultResponse);
+      const response = result.response.text();
+      const extracted = extractJson(response, defaultResponse);
 
-    return extracted;
+      return JSON.stringify(extracted);
+    }).then(responseStr => JSON.parse(responseStr));
   } catch (error) {
     console.error("Voice log extraction error:", error);
     

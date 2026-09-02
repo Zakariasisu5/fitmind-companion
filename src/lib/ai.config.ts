@@ -105,10 +105,13 @@ Do NOT include any explanation or text outside the JSON structure.`;
  * AI Model Configuration
  */
 export const AI_CONFIG = {
-  // Use Gemini Flash for cost-efficiency and speed (current GA, stable, recommended)
+  // Use Gemini Flash for cost-efficiency and speed (✓ confirmed live)
   defaultModel: "gemini-3.5-flash",
   
-  // Fallback to Pro for complex reasoning (if needed)
+  // Fallback models tried in order if defaultModel fails (✓ both confirmed live)
+  fallbackModels: ["gemini-2.5-flash", "gemini-3.1-flash-lite"],
+  
+  // Pro model for complex reasoning if needed (✓ confirmed live, preview model)
   proModel: "gemini-3.1-pro-preview",
   
   // Token limits by use case

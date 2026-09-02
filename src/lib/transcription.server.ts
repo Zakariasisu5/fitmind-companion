@@ -7,7 +7,6 @@
  */
 
 import { transcribeAudio as khayaTranscribe, type AppLangCode } from "./khaya.server";
-import { convertToWav, ensureWavFormat, validateAudioSize } from "./audio-convert.server";
 
 export type TranscriptionLanguage = "en" | "tw" | "ak" | "fat" | "dag" | "dga" | "gur" | "kus" | "ksm" | "ee" | "ga" | "gon" | "kpo" | "nic";
 
@@ -39,6 +38,40 @@ export async function transcribeAudio(
 }
 
 /**
+ * Helper function to dynamically import audio conversion and transcribe
+ * This prevents audio-convert.server from being bundled in the initial load
+ */
+async function transcribeAudioFromRawBytes(
+  rawAudio: Buffer,
+  format: string,
+  language: AppLangCode | "en"
+): Promise<{ text: string; confidence?: number }> {
+  try {
+    // Dynamic import prevents ffmpeg from loading at build time
+    const { ensureWavFormat, validateAudioSize } = await import("./audio-convert.server");
+    
+    validateAudioSize(rawAudio, 25);
+    
+    let wavBuffer: Buffer;
+    let finalFormat: "wav" | "mp3" | "ogg" = "wav";
+    
+    try {
+      wavBuffer = await ensureWavFormat(rawAudio, format);
+      finalFormat = "wav";
+    } catch (conversionError) {
+      console.warn(`[Transcription] Audio conversion failed, trying direct transcription`);
+      wavBuffer = rawAudio;
+      finalFormat = format === "webm" || format === "m4a" || format === "mp4" ? "mp3" : (format as "wav" | "mp3" | "ogg");
+    }
+    
+    return await khayaTranscribe(wavBuffer, finalFormat, language);
+  } catch (err) {
+    console.error("Voice conversion/transcription failed:", err);
+    throw new Error("Voice transcription is temporarily unavailable. Please try again shortly.");
+  }
+}
+
+/**
  * Transcribe English audio using Khaya ASR
  * Falls back to mock only if Khaya is not configured
  */
@@ -55,27 +88,10 @@ async function transcribeEnglish(
       console.log("[Transcription] Using Khaya for English transcription");
       
       try {
-        // Use the same conversion pipeline as local languages
         const audioBuffer = Buffer.from(audioBase64, "base64");
         console.log(`[Transcription] Audio buffer size: ${audioBuffer.length} bytes`);
         
-        validateAudioSize(audioBuffer, 25);
-        
-        // Try conversion, but fallback to direct transcription if it fails
-        let wavBuffer: Buffer;
-        let finalFormat: "wav" | "mp3" | "ogg" = "wav";
-        
-        try {
-          wavBuffer = await ensureWavFormat(audioBuffer, format);
-          console.log(`[Transcription] WAV buffer size: ${wavBuffer.length} bytes`);
-          finalFormat = "wav";
-        } catch (conversionError) {
-          console.warn(`[Transcription] Audio conversion failed, trying direct transcription`);
-          wavBuffer = audioBuffer;
-          finalFormat = "wav"; // Try as WAV anyway
-        }
-        
-        const result = await khayaTranscribe(wavBuffer, finalFormat, "en");
+        const result = await transcribeAudioFromRawBytes(audioBuffer, format, "en");
         
         console.log(`[Transcription] Khaya English transcription complete: ${result.text?.substring(0, 50)}...`);
         
@@ -136,44 +152,15 @@ async function transcribeLocalLanguage(
   try {
     console.log(`[Transcription] Starting Khaya transcription for ${language}, format: ${format}`);
     
-    // Decode base64 to buffer
     const audioBuffer = Buffer.from(audioBase64, "base64");
     console.log(`[Transcription] Audio buffer size: ${audioBuffer.length} bytes`);
     
-    // Validate size (max 25MB)
-    validateAudioSize(audioBuffer, 25);
-    
-    // Try to convert to WAV, but if conversion fails, try direct transcription
-    let wavBuffer: Buffer;
-    let finalFormat: "wav" | "mp3" | "ogg" = "wav";
-    
-    try {
-      wavBuffer = await ensureWavFormat(audioBuffer, format);
-      console.log(`[Transcription] WAV buffer size: ${wavBuffer.length} bytes`);
-      finalFormat = "wav";
-    } catch (conversionError) {
-      console.warn(`[Transcription] Audio conversion failed, trying direct transcription with ${format}`);
-      wavBuffer = audioBuffer;
-      // Map format to Khaya-supported formats
-      if (format === "webm" || format === "m4a" || format === "mp4") {
-        finalFormat = "mp3"; // Khaya might accept mp3
-      } else {
-        finalFormat = format as "wav" | "mp3" | "ogg";
-      }
-    }
-    
-    // Transcribe using Khaya
-    const result = await khayaTranscribe(wavBuffer, finalFormat, language);
+    const result = await transcribeAudioFromRawBytes(audioBuffer, format, language);
     
     console.log(`[Transcription] Khaya transcription complete: ${result.text?.substring(0, 50)}...`);
     
-    // Add warning if confidence is low
-    let warning: string | undefined;
     const verified = (result.confidence ?? 0) > 0.7;
-    
-    if (!verified) {
-      warning = "Low confidence transcription - please review and edit if needed";
-    }
+    const warning = verified ? undefined : "Low confidence transcription - please review and edit if needed";
 
     return {
       text: result.text,
@@ -186,7 +173,6 @@ async function transcribeLocalLanguage(
   } catch (error) {
     console.error(`[Transcription] Khaya ${language} transcription error:`, error);
     
-    // Return a fallback result rather than throwing
     return {
       text: `[Transcription failed for ${language} - Khaya unavailable]`,
       language: language as TranscriptionLanguage,
