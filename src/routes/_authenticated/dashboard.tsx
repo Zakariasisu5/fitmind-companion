@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader, Disclaimer } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
-import { VoiceLogSpeaker } from "@/components/VoiceLogSpeaker";
+import { MuteToggle, SpeakButton } from "@/components/SpeechControls";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -101,12 +101,20 @@ function Dashboard() {
           {isLoading ? (
             <SkeletonList />
           ) : data?.insights.length ? (
-            data.insights.map((i) => (
-              <div key={i.id} className="soft-card p-4">
-                <p className="font-medium">{i.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{i.content}</p>
+            <>
+              <div className="flex justify-end">
+                <MuteToggle />
               </div>
-            ))
+              {data.insights.map((i) => (
+                <div key={i.id} className="soft-card flex items-start gap-2 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{i.title}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{i.content}</p>
+                  </div>
+                  <SpeakButton id={`insight-${i.id}`} text={`${i.title}. ${i.content}`} />
+                </div>
+              ))}
+            </>
           ) : (
             <Empty text="Log a voice note or open the body map to generate your first insights." />
           )}
@@ -124,10 +132,9 @@ function Dashboard() {
                     <p className="flex-1 text-sm text-secondary-foreground line-clamp-2">
                       {v.ai_response}
                     </p>
-                    <VoiceLogSpeaker
-                      logId={v.id}
+                    <SpeakButton
+                      id={`voice-${v.id}`}
                       text={v.ai_response}
-                      language="en"
                     />
                   </div>
                 )}

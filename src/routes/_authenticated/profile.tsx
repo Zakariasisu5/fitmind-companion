@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MuteToggle, SpeakButton, VoiceFallbackNotice } from "@/components/SpeechControls";
+import { useSpeech } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -45,6 +47,8 @@ function ProfilePage() {
   );
   const [form, setForm] = useState({ name: "", phone: "", relationship: "" });
   const [reportInsights, setReportInsights] = useState<string[]>([]);
+  const [reportSpoken, setReportSpoken] = useState("");
+  const { speak, muted, language } = useSpeech();
 
   const profile = useQuery({
     queryKey: ["profile", user?.id],
@@ -138,8 +142,13 @@ function ProfilePage() {
       if (error) throw error;
 
       const context = valid.map((v) => `${v.section} ${v.metric}: ${v.value}${v.unit}`).join("\n");
-      const { insights: result } = await insights({ data: { context, focus: "medical report review" } });
+      const { insights: result } = await insights({
+        data: { context, focus: "medical report review", language },
+      });
       setReportInsights(result.map((r) => `${r.title}: ${r.content}`));
+      const audioText = result.map((r) => r.spoken?.trim() || `${r.title}. ${r.content}`).join(" ");
+      setReportSpoken(audioText);
+      if (audioText && !muted) void speak(audioText, { id: "report-insights" });
       if (result.length) {
         await supabase.from("health_insights").insert(
           result.map((r) => ({
@@ -229,11 +238,22 @@ function ProfilePage() {
               e.target.value = "";
             }}
           />
+          {reportInsights.length ? (
+            <div className="flex items-center justify-end gap-1">
+              <SpeakButton
+                id="report-insights"
+                text={reportInsights.join(" ")}
+                audioText={reportSpoken}
+              />
+              <MuteToggle />
+            </div>
+          ) : null}
           {reportInsights.map((i) => (
             <p key={i} className="text-sm text-muted-foreground">
               {i}
             </p>
           ))}
+          {reportInsights.length ? <VoiceFallbackNotice /> : null}
         </section>
 
         <section className="soft-card space-y-3 p-4">
