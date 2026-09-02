@@ -135,7 +135,7 @@ export const askHealthCoach = createServerFn({ method: "POST" })
       return {
         reply: translatedReply,
         audioText: raw, // Keep English for TTS (will be handled separately)
-        spokenLanguage: language as const,
+        spokenLanguage: language,
         translated: true, // Flag to show "translated" tag in UI
       };
     } catch (error) {
@@ -330,7 +330,7 @@ Respond ONLY with JSON in this format:
             priority: string;
             spoken: string;
           }>;
-        }>(translatedRaw, { insights });
+        }>(translatedRaw, { insights: insights.map(i => ({ ...i, spoken: i.content })) });
 
         return { 
           insights: translated.insights || insights.map(i => ({
@@ -375,7 +375,7 @@ export const saveChatMessage = createServerFn({ method: "POST" })
         user_id: data.userId,
         content: data.message, // Use 'content' to match database schema
         role: data.role,
-        language: data.language,
+        language: data.language as LangCode,
         created_at: new Date().toISOString(),
       });
 
