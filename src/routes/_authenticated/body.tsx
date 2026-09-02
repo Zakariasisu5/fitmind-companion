@@ -123,9 +123,14 @@ function BodyPage() {
         })
         .join("\n");
       const { insights: result } = await insights({
-        data: { context, focus: `${active.label} health` },
+        data: { context, focus: `${active.label} health`, language },
       });
       setSuggestions(result.map((r) => `${r.title}: ${r.content}`));
+      const audioText = result
+        .map((r) => r.spoken?.trim() || `${r.title}. ${r.content}`)
+        .join(" ");
+      setSpoken(audioText);
+      if (audioText && !muted) void speak(audioText, { id: "body-insights" });
       if (result.length && user) {
         await supabase.from("health_insights").insert(
           result.map((r) => ({
