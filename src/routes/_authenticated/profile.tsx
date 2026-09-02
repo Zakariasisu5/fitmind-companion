@@ -238,11 +238,22 @@ function ProfilePage() {
               e.target.value = "";
             }}
           />
+          {reportInsights.length ? (
+            <div className="flex items-center justify-end gap-1">
+              <SpeakButton
+                id="report-insights"
+                text={reportInsights.join(" ")}
+                audioText={reportSpoken}
+              />
+              <MuteToggle />
+            </div>
+          ) : null}
           {reportInsights.map((i) => (
             <p key={i} className="text-sm text-muted-foreground">
               {i}
             </p>
           ))}
+          {reportInsights.length ? <VoiceFallbackNotice /> : null}
         </section>
 
         <section className="soft-card space-y-3 p-4">
