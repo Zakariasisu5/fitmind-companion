@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MuteToggle, SpeakButton, VoiceFallbackNotice } from "@/components/SpeechControls";
+import { useSpeech } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/body")({
   head: () => ({
@@ -78,6 +80,9 @@ function BodyPage() {
   const [active, setActive] = useState(REGIONS[0]!);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [spoken, setSpoken] = useState("");
+  const { speak, muted, language } = useSpeech();
+
 
   const metrics = useQuery({
     queryKey: ["health_metrics", user?.id],
@@ -118,9 +123,14 @@ function BodyPage() {
         })
         .join("\n");
       const { insights: result } = await insights({
-        data: { context, focus: `${active.label} health` },
+        data: { context, focus: `${active.label} health`, language },
       });
       setSuggestions(result.map((r) => `${r.title}: ${r.content}`));
+      const audioText = result
+        .map((r) => r.spoken?.trim() || `${r.title}. ${r.content}`)
+        .join(" ");
+      setSpoken(audioText);
+      if (audioText && !muted) void speak(audioText, { id: "body-insights" });
       if (result.length && user) {
         await supabase.from("health_insights").insert(
           result.map((r) => ({
@@ -267,12 +277,21 @@ function BodyPage() {
 
         {suggestions.length ? (
           <div className="soft-card space-y-2 p-4">
-            <p className="text-sm font-semibold">Suggestions for your {active.label.toLowerCase()}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold">
+                Suggestions for your {active.label.toLowerCase()}
+              </p>
+              <div className="flex items-center gap-1">
+                <SpeakButton id="body-insights" text={suggestions.join(" ")} audioText={spoken} />
+                <MuteToggle />
+              </div>
+            </div>
             {suggestions.map((s) => (
               <p key={s} className="text-sm text-muted-foreground">
                 {s}
               </p>
             ))}
+            <VoiceFallbackNotice />
           </div>
         ) : null}
 
