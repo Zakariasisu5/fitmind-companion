@@ -80,6 +80,9 @@ function BodyPage() {
   const [active, setActive] = useState(REGIONS[0]!);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [spoken, setSpoken] = useState("");
+  const { speak, muted, language } = useSpeech();
+
 
   const metrics = useQuery({
     queryKey: ["health_metrics", user?.id],
