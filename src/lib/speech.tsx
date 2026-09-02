@@ -74,6 +74,10 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       }
     }
     sourcesRef.current = [];
+    // Stop browser speech synthesis if it's running
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
     setSpeakingId(null);
   }, []);
 
@@ -151,8 +155,35 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ text: spoken }),
           signal: controller.signal,
         });
-        if (!res.ok || !res.body) throw new Error(`Voice output failed (${res.status})`);
+        if (!res.ok) throw new Error(`Voice output failed (${res.status})`);
 
+        // Check if response is JSON (browser TTS fallback) or SSE stream
+        const contentType = res.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+          // Use browser's built-in speech synthesis
+          const data = await res.json();
+          if (data.useBrowserTTS && "speechSynthesis" in window) {
+            const utterance = new SpeechSynthesisUtterance(data.text || spoken);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            utterance.lang = "en-US";
+            
+            utterance.onend = () => {
+              setSpeakingId((cur) => (cur === id ? null : cur));
+            };
+            
+            utterance.onerror = () => {
+              setSpeakingId((cur) => (cur === id ? null : cur));
+            };
+            
+            window.speechSynthesis.speak(utterance);
+            return;
+          }
+          throw new Error("Browser TTS not supported");
+        }
+
+        if (!res.body) throw new Error("No response body");
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
         let buffer = "";
         for (;;) {
