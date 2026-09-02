@@ -9,12 +9,31 @@ import {
   type ReactNode,
 } from "react";
 
-export type LangCode = "en" | "tw" | "dag";
+export type LangCode = "en" | "tw" | "dag" | "ee" | "ga" | "kpo" | "gur" | "ak" | "fat" | "ksm" | "nic" | "dga" | "gon" | "kus";
 
-export const LANGUAGES: Array<{ code: LangCode; label: string; nativeVoice: boolean }> = [
-  { code: "en", label: "English", nativeVoice: true },
-  { code: "tw", label: "Twi", nativeVoice: false },
-  { code: "dag", label: "Dagbani", nativeVoice: false },
+export const LANGUAGES: Array<{ code: LangCode; label: string; nativeVoice: boolean; region?: string }> = [
+  { code: "en", label: "English", nativeVoice: true, region: "Nationwide" },
+  
+  // Akan Languages
+  { code: "tw", label: "Twi (Akan)", nativeVoice: true, region: "Ashanti, Central" },
+  { code: "ak", label: "Akuapem Twi", nativeVoice: true, region: "Eastern" },
+  { code: "fat", label: "Fante", nativeVoice: true, region: "Central, Western" },
+  
+  // Northern Languages (Gur/Mole-Dagbani)
+  { code: "dag", label: "Dagbani", nativeVoice: true, region: "Northern" },
+  { code: "dga", label: "Dagaare", nativeVoice: true, region: "Upper West" },
+  { code: "gur", label: "Gurene", nativeVoice: true, region: "Upper East" },
+  { code: "kus", label: "Kusaal", nativeVoice: true, region: "Upper East" },
+  { code: "ksm", label: "Kasem", nativeVoice: false, region: "Upper East" },
+  
+  // Other Major Languages
+  { code: "ee", label: "Ewe", nativeVoice: true, region: "Volta, Oti" },
+  { code: "ga", label: "Ga", nativeVoice: true, region: "Greater Accra" },
+  { code: "gon", label: "Gonja", nativeVoice: true, region: "Savannah" },
+  
+  // Smaller Languages
+  { code: "kpo", label: "Ikposo", nativeVoice: false, region: "Oti" },
+  { code: "nic", label: "Nzema", nativeVoice: false, region: "Western" },
 ];
 
 export function languageLabel(code: LangCode) {
