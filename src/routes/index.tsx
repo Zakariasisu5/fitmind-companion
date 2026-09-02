@@ -70,9 +70,12 @@ function Landing() {
     >
       {/* Top bar */}
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-6 md:px-12">
-        <span className="font-mono text-sm font-bold tracking-widest" style={{ color: TEAL }}>
-          MINDTALK_AI
-        </span>
+        <div className="flex items-center gap-3">
+          <img src="/logo.jpeg" alt="MindTalk AI" className="h-10 w-10 rounded-lg object-cover" />
+          <span className="font-mono text-sm font-bold tracking-widest" style={{ color: TEAL }}>
+            MINDTALK_AI
+          </span>
+        </div>
         <Link
           to="/auth"
           className="tap flex items-center gap-1 font-mono text-xs uppercase tracking-widest transition-colors"

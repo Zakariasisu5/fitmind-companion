@@ -38,9 +38,7 @@ export function AppShell() {
       {/* Desktop sidebar — hidden on mobile by design */}
       <aside className="hidden w-64 shrink-0 border-r border-border bg-sidebar px-4 py-6 lg:block">
         <div className="mb-8 flex items-center gap-2 px-2">
-          <span className="calm-gradient flex size-9 items-center justify-center rounded-2xl">
-            <HeartPulse className="size-5 text-primary-foreground" />
-          </span>
+          <img src="/logo.jpeg" alt="MindTalk AI" className="size-9 rounded-xl object-cover" />
           <span className="text-lg font-semibold tracking-tight">MindTalk AI</span>
         </div>
         <nav className="space-y-1">
