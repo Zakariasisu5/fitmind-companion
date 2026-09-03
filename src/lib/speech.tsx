@@ -46,15 +46,8 @@ export function hasNativeVoice(code: LangCode) {
 
 const MUTE_KEY = "mindtalkai.speech.muted";
 const LANG_KEY = "mindtalkai.speech.language";
-const VOLUME_KEY = "mindtalkai.speech.volume";
-const RATE_KEY = "mindtalkai.speech.rate";
 
-export const MIN_RATE = 0.5;
-export const MAX_RATE = 2;
-
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-
-type SpeakOptions = { id?: string | undefined; audioText?: string | undefined };
+type SpeakOptions = { id?: string; audioText?: string };
 
 type SpeechValue = {
   muted: boolean;
@@ -62,10 +55,6 @@ type SpeechValue = {
   toggleMuted: () => void;
   language: LangCode;
   setLanguage: (l: LangCode) => void;
-  volume: number;
-  setVolume: (v: number) => void;
-  rate: number;
-  setRate: (v: number) => void;
   speak: (text: string, options?: SpeakOptions) => Promise<void>;
   stop: () => void;
   speakingId: string | null;
@@ -78,12 +67,7 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   const [muted, setMutedState] = useState(false);
   const [language, setLanguageState] = useState<LangCode>("en");
   const [speakingId, setSpeakingId] = useState<string | null>(null);
-  const [volume, setVolumeState] = useState(1);
-  const [rate, setRateState] = useState(1);
 
-  const volumeRef = useRef(1);
-  const rateRef = useRef(1);
-  const gainRef = useRef<GainNode | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const abortRef = useRef<AbortController | null>(null);
@@ -93,18 +77,6 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       setMutedState(localStorage.getItem(MUTE_KEY) === "1");
       const stored = localStorage.getItem(LANG_KEY) as LangCode | null;
       if (stored && LANGUAGES.some((l) => l.code === stored)) setLanguageState(stored);
-      const storedVolume = Number(localStorage.getItem(VOLUME_KEY));
-      if (Number.isFinite(storedVolume) && localStorage.getItem(VOLUME_KEY) !== null) {
-        const v = clamp(storedVolume, 0, 1);
-        volumeRef.current = v;
-        setVolumeState(v);
-      }
-      const storedRate = Number(localStorage.getItem(RATE_KEY));
-      if (Number.isFinite(storedRate) && localStorage.getItem(RATE_KEY) !== null) {
-        const r = clamp(storedRate, MIN_RATE, MAX_RATE);
-        rateRef.current = r;
-        setRateState(r);
-      }
     } catch {
       /* storage unavailable */
     }
@@ -141,29 +113,6 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
     [stop],
   );
 
-  const setVolume = useCallback((v: number) => {
-    const next = clamp(v, 0, 1);
-    volumeRef.current = next;
-    setVolumeState(next);
-    if (gainRef.current) gainRef.current.gain.value = next;
-    try {
-      localStorage.setItem(VOLUME_KEY, String(next));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const setRate = useCallback((v: number) => {
-    const next = clamp(v, MIN_RATE, MAX_RATE);
-    rateRef.current = next;
-    setRateState(next);
-    try {
-      localStorage.setItem(RATE_KEY, String(next));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const setLanguage = useCallback((l: LangCode) => {
     setLanguageState(l);
     try {
@@ -193,14 +142,6 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
         }
         if (ctx.state === "suspended") await ctx.resume().catch(() => {});
 
-        let gain = gainRef.current;
-        if (!gain || gain.context !== ctx) {
-          gain = ctx.createGain();
-          gain.connect(ctx.destination);
-          gainRef.current = gain;
-        }
-        gain.gain.value = volumeRef.current;
-
         let playhead = 0;
         let pending = new Uint8Array(0);
 
@@ -219,12 +160,11 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
           buffer.copyToChannel(floats, 0);
           const source = audio.createBufferSource();
           source.buffer = buffer;
-          source.playbackRate.value = rateRef.current;
-          source.connect(gainRef.current ?? audio.destination);
+          source.connect(audio.destination);
           if (playhead === 0) playhead = audio.currentTime + 0.05;
           else playhead = Math.max(playhead, audio.currentTime);
           source.start(playhead);
-          playhead += buffer.duration / rateRef.current;
+          playhead += buffer.duration;
           sourcesRef.current.push(source);
         };
 
@@ -243,9 +183,9 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
           const data = await res.json();
           if (data.useBrowserTTS && "speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(data.text || spoken);
-            utterance.rate = clamp(0.9 * rateRef.current, 0.1, 10);
+            utterance.rate = 0.9;
             utterance.pitch = 1.0;
-            utterance.volume = volumeRef.current;
+            utterance.volume = 1.0;
             utterance.lang = "en-US";
             
             utterance.onend = () => {
@@ -313,16 +253,12 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       toggleMuted: () => setMuted(!muted),
       language,
       setLanguage,
-      volume,
-      setVolume,
-      rate,
-      setRate,
       speak,
       stop,
       speakingId,
       isSpeaking: speakingId !== null,
     }),
-    [muted, setMuted, language, setLanguage, volume, setVolume, rate, setRate, speak, stop, speakingId],
+    [muted, setMuted, language, setLanguage, speak, stop, speakingId],
   );
 
   return <SpeechContext.Provider value={value}>{children}</SpeechContext.Provider>;

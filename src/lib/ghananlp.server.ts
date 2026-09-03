@@ -92,11 +92,6 @@ export function getSupportedLanguages(): Array<{ code: GhanaNLPLanguage; name: s
     { code: "nic", name: "Nzema", nativeVoice: false, region: "Western" },
   ];
 }
-
-/**
- * Read the GhanaNLP API key from the environment
- */
-function getApiKey(): string {
   const apiKey = process.env["GHANANLP_API_KEY"];
   if (!apiKey || apiKey === "your-ghananlp-api-key-here") {
     throw new GhanaNLPError(

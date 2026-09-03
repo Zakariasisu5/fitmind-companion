@@ -1,9 +1,9 @@
 /**
  * Unified Transcription Service for MindTalk AI
- *
+ * 
  * Routes audio transcription to the appropriate provider:
- * - Default: Gemini (GEMINI_API_KEY) audio understanding — serverless friendly
- * - Twi/Dagbani and other local languages: Khaya ASR when configured, Gemini fallback
+ * - English → Whisper API (OpenAI) or fallback
+ * - Twi/Dagbani → Khaya ASR (with audio conversion)
  */
 
 import { transcribeAudio as khayaTranscribe, type AppLangCode } from "./khaya.server";
@@ -13,77 +13,10 @@ export type TranscriptionLanguage = "en" | "tw" | "ak" | "fat" | "dag" | "dga" |
 export interface TranscriptionResult {
   text: string;
   language: TranscriptionLanguage;
-  confidence?: number | undefined;
+  confidence?: number;
   verified: boolean;
-  provider: "gemini" | "ghananlp" | "mock";
-  warning?: string | undefined;
-}
-
-
-const MIME_BY_FORMAT: Record<string, string> = {
-  webm: "audio/webm",
-  m4a: "audio/mp4",
-  mp4: "audio/mp4",
-  wav: "audio/wav",
-  mp3: "audio/mpeg",
-  ogg: "audio/ogg",
-};
-
-function base64ToBytes(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-/**
- * Transcribe with the Lovable AI Gateway (OpenAI-compatible /audio/transcriptions).
- * No ffmpeg / native deps, so it works on Vercel and other serverless runtimes.
- */
-async function gatewayTranscribe(
-  audioBase64: string,
-  format: string,
-  language: TranscriptionLanguage,
-): Promise<string> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) {
-    throw new Error(
-      "Speech-to-text is not configured. Add LOVABLE_API_KEY to your environment and redeploy.",
-    );
-  }
-
-  const bytes = base64ToBytes(audioBase64);
-  if (bytes.byteLength < 1024) {
-    throw new Error("That recording was too short or empty — please try again.");
-  }
-  if (bytes.byteLength > 24 * 1024 * 1024) {
-    throw new Error("That recording is too long. Please keep voice logs under a few minutes.");
-  }
-
-  const ext = format in MIME_BY_FORMAT ? format : "webm";
-  const form = new FormData();
-  form.append("model", "openai/gpt-4o-transcribe");
-  form.append("file", new Blob([bytes as unknown as BlobPart], { type: MIME_BY_FORMAT[ext]! }), `recording.${ext}`);
-  if (language === "en") form.append("language", "en");
-
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    console.error(`[Transcription] Gateway error ${response.status}: ${detail.slice(0, 500)}`);
-    if (response.status === 429) throw new Error("Too many requests right now — please try again in a moment.");
-    if (response.status === 402) throw new Error("AI credits are exhausted. Please top up to keep using voice logs.");
-    throw new Error(`Transcription service error (${response.status}). Please try again.`);
-  }
-
-  const json = (await response.json()) as { text?: string };
-  const text = (json.text ?? "").trim();
-  if (!text) throw new Error("We couldn't hear anything in that recording — please try again.");
-  return text;
+  provider: "whisper" | "ghananlp" | "mock";
+  warning?: string;
 }
 
 /**
@@ -92,57 +25,177 @@ async function gatewayTranscribe(
 export async function transcribeAudio(
   audioBase64: string,
   language: TranscriptionLanguage,
-  format: string = "webm",
+  format: string = "webm"
 ): Promise<TranscriptionResult> {
   console.log(`[Transcription] Starting transcription for language: ${language}, format: ${format}`);
 
-  // Local languages: prefer Khaya when it is configured.
-  if (language !== "en") {
-    const khayaKey = process.env["KHAYA_API_KEY"];
-    if (khayaKey && khayaKey !== "your-khaya-api-key-here") {
+  // Route to appropriate provider
+  if (language === "en") {
+    return await transcribeEnglish(audioBase64, format);
+  } else {
+    return await transcribeLocalLanguage(audioBase64, language as AppLangCode, format);
+  }
+}
+
+/**
+ * Helper function to dynamically import audio conversion and transcribe
+ * This prevents audio-convert.server from being bundled in the initial load
+ */
+async function transcribeAudioFromRawBytes(
+  rawAudio: Buffer,
+  format: string,
+  language: AppLangCode | "en"
+): Promise<{ text: string; confidence?: number }> {
+  try {
+    // Dynamic import prevents ffmpeg from loading at build time
+    const { ensureWavFormat, validateAudioSize } = await import("./audio-convert.server");
+    
+    validateAudioSize(rawAudio, 25);
+    
+    let wavBuffer: Buffer;
+    let finalFormat: "wav" | "mp3" | "ogg" = "wav";
+    
+    try {
+      wavBuffer = await ensureWavFormat(rawAudio, format);
+      finalFormat = "wav";
+    } catch (conversionError) {
+      console.warn(`[Transcription] Audio conversion failed, trying direct transcription`);
+      wavBuffer = rawAudio;
+      finalFormat = format === "webm" || format === "m4a" || format === "mp4" ? "mp3" : (format as "wav" | "mp3" | "ogg");
+    }
+    
+    return await khayaTranscribe(wavBuffer, finalFormat, language);
+  } catch (err) {
+    console.error("Voice conversion/transcription failed:", err);
+    throw new Error("Voice transcription is temporarily unavailable. Please try again shortly.");
+  }
+}
+
+/**
+ * Transcribe English audio using Khaya ASR
+ * Falls back to mock only if Khaya is not configured
+ */
+async function transcribeEnglish(
+  audioBase64: string,
+  format: string
+): Promise<TranscriptionResult> {
+  try {
+    const apiKey = process.env["KHAYA_API_KEY"];
+    console.log(`[Transcription] KHAYA_API_KEY check: ${apiKey ? 'SET (length: ' + apiKey.length + ')' : 'NOT SET'}`);
+    
+    // If Khaya is configured, use it for English transcription
+    if (apiKey && apiKey !== "your-khaya-api-key-here") {
+      console.log("[Transcription] Using Khaya for English transcription");
+      
       try {
-        const bytes = base64ToBytes(audioBase64);
-        const khayaFormat: "wav" | "mp3" | "ogg" = format === "wav" ? "wav" : format === "ogg" ? "ogg" : "mp3";
-        const result = await khayaTranscribe(Buffer.from(bytes), khayaFormat, language as AppLangCode);
+        const audioBuffer = Buffer.from(audioBase64, "base64");
+        console.log(`[Transcription] Audio buffer size: ${audioBuffer.length} bytes`);
+        
+        const result = await transcribeAudioFromRawBytes(audioBuffer, format, "en");
+        
+        console.log(`[Transcription] Khaya English transcription complete: ${result.text?.substring(0, 50)}...`);
+        
         const verified = (result.confidence ?? 0) > 0.7;
+        
         return {
           text: result.text,
-          language,
+          language: "en",
           confidence: result.confidence,
           verified,
           provider: "ghananlp",
-          ...(verified ? {} : { warning: "Low confidence transcription — please review and edit if needed." }),
+          warning: verified ? undefined : "Low confidence - please review",
         };
-      } catch (error) {
-        console.warn("[Transcription] Khaya failed, falling back to gateway:", error);
+      } catch (khayaError) {
+        console.error("[Transcription] Khaya transcription failed:", khayaError);
+        throw khayaError;
       }
     }
+    
+    // Check if OpenAI is configured as alternative
+    const openaiKey = process.env["OPENAI_API_KEY"];
+    if (openaiKey && openaiKey !== "your-openai-api-key-here") {
+      console.warn("[Transcription] OpenAI configured but not yet implemented, using mock");
+      // TODO: Implement Whisper API call here if needed
+    }
+    
+    // Fallback to mock if neither API is configured
+    console.warn("[Transcription] Neither Khaya nor OpenAI configured, using mock transcription");
+    console.warn(`[Transcription] KHAYA_API_KEY value: "${apiKey}"`);
+    return {
+      text: "[Mock English transcription - Please set up Khaya API key or Whisper API for actual transcription]",
+      language: "en",
+      verified: false,
+      provider: "mock",
+      warning: "No transcription service configured. Add KHAYA_API_KEY to .env to enable English transcription.",
+    };
+  } catch (error) {
+    console.error("[Transcription] English transcription error:", error);
+    return {
+      text: "[Transcription failed - Please try again]",
+      language: "en",
+      verified: false,
+      provider: "mock",
+      warning: `Transcription error: ${(error as Error).message}`,
+    };
   }
+}
 
-  const text = await gatewayTranscribe(audioBase64, format, language);
-  return {
-    text,
-    language,
-    verified: true,
-    provider: "gateway",
-    ...(language === "en"
-      ? {}
-      : { warning: "Transcribed with the general speech model — please review the text for accuracy." }),
-  };
+/**
+ * Transcribe Twi, Dagbani, or other local language audio using Khaya
+ * Automatically converts audio to WAV format for Khaya compatibility
+ */
+async function transcribeLocalLanguage(
+  audioBase64: string,
+  language: AppLangCode,
+  format: string
+): Promise<TranscriptionResult> {
+  try {
+    console.log(`[Transcription] Starting Khaya transcription for ${language}, format: ${format}`);
+    
+    const audioBuffer = Buffer.from(audioBase64, "base64");
+    console.log(`[Transcription] Audio buffer size: ${audioBuffer.length} bytes`);
+    
+    const result = await transcribeAudioFromRawBytes(audioBuffer, format, language);
+    
+    console.log(`[Transcription] Khaya transcription complete: ${result.text?.substring(0, 50)}...`);
+    
+    const verified = (result.confidence ?? 0) > 0.7;
+    const warning = verified ? undefined : "Low confidence transcription - please review and edit if needed";
+
+    return {
+      text: result.text,
+      language: language as TranscriptionLanguage,
+      confidence: result.confidence,
+      verified,
+      provider: "ghananlp",
+      warning,
+    };
+  } catch (error) {
+    console.error(`[Transcription] Khaya ${language} transcription error:`, error);
+    
+    return {
+      text: `[Transcription failed for ${language} - Khaya unavailable]`,
+      language: language as TranscriptionLanguage,
+      verified: false,
+      provider: "ghananlp",
+      warning: `Khaya transcription failed: ${(error as Error).message}. Please try again or switch to English.`,
+    };
+  }
 }
 
 /**
  * Convert audio format to a standardized format for transcription
+ * Helps with compatibility across different providers
  */
 export function normalizeAudioFormat(format: string): string {
   const formatMap: Record<string, string> = {
-    mp4: "m4a",
-    webm: "webm",
-    m4a: "m4a",
-    wav: "wav",
-    mp3: "mp3",
-    ogg: "ogg",
+    "mp4": "m4a",
+    "webm": "webm",
+    "m4a": "m4a",
+    "wav": "wav",
+    "mp3": "mp3",
+    "ogg": "ogg",
   };
-
+  
   return formatMap[format.toLowerCase()] || "webm";
 }

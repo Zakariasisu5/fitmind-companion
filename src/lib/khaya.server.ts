@@ -18,7 +18,7 @@ import {
 
 export class KhayaError extends Error {
   status: number;
-  code?: string | undefined;
+  code?: string;
   constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
@@ -103,7 +103,7 @@ export async function transcribeAudio(
       "Content-Type": contentType,
       "Ocp-Apim-Subscription-Key": getApiKey(),
     },
-    body: new Uint8Array(audioBuffer),
+    body: audioBuffer,
   });
 
   if (!response.ok) await handleErrorResponse(response);

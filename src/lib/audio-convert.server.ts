@@ -118,7 +118,7 @@ export async function ensureWavFormat(
   }
   
   // Check if we're in a serverless environment (Vercel, Netlify, etc.)
-  const isServerless = process.env['VERCEL'] || process.env['NETLIFY'] || process.env['AWS_LAMBDA_FUNCTION_NAME'];
+  const isServerless = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME;
   
   if (isServerless) {
     console.warn("[AudioConvert] Serverless environment detected, skipping conversion");

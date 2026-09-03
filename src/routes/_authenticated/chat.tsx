@@ -8,13 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { askHealthCoach } from "@/lib/ai.functions";
 import { useUser } from "@/hooks/useUser";
 import { PageHeader } from "@/components/AppShell";
-import {
-  LanguagePicker,
-  MuteToggle,
-  SpeakButton,
-  VoiceFallbackNotice,
-  VoicePlaybackControls,
-} from "@/components/SpeechControls";
+import { LanguagePicker, MuteToggle, SpeakButton, VoiceFallbackNotice } from "@/components/SpeechControls";
 import { useSpeech } from "@/lib/speech";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -111,8 +105,6 @@ function ChatPage() {
           MindTalk AI is a wellness and health tracking application, not a substitute for professional
           medical advice, diagnosis, or treatment. In an emergency, contact local emergency services.
         </p>
-
-        <VoicePlaybackControls />
 
         <VoiceFallbackNotice />
 

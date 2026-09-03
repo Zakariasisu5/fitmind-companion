@@ -59,7 +59,7 @@ export const askHealthCoach = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const language = data.language as LangCode;
     const localised = language !== "en";
-    const userId = data.userId || (context as { userId?: string }).userId;
+    const userId = data.userId || context.user?.id;
 
     // Fetch recent health context for the user
     let healthContext;
@@ -375,6 +375,7 @@ export const saveChatMessage = createServerFn({ method: "POST" })
         user_id: data.userId,
         content: data.message, // Use 'content' to match database schema
         role: data.role,
+        language: data.language as LangCode,
         created_at: new Date().toISOString(),
       });
 
