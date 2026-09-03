@@ -48,7 +48,7 @@ function getModel(
   const client = getGeminiClient();
   return client.getGenerativeModel({
     model: modelName,
-    safetySettings: AI_CONFIG.safetySettings,
+    safetySettings: [...AI_CONFIG.safetySettings],
     systemInstruction,
   });
 }
@@ -192,7 +192,7 @@ export async function chatWithAI(
       }));
 
       // If history starts with 'model', remove it or prepend a user message
-      if (cleanedHistory.length > 0 && cleanedHistory[0].role === 'model') {
+      if (cleanedHistory.length > 0 && cleanedHistory[0]?.role === 'model') {
         console.warn('[AI] Removing leading model message from history (Gemini requires first message to be from user)');
         cleanedHistory = cleanedHistory.slice(1);
       }
