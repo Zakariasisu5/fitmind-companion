@@ -1,5 +1,13 @@
 import { Loader2, Volume2, VolumeX } from "lucide-react";
-import { LANGUAGES, hasNativeVoice, languageLabel, useSpeech, type LangCode } from "@/lib/speech";
+import {
+  LANGUAGES,
+  MAX_RATE,
+  MIN_RATE,
+  hasNativeVoice,
+  languageLabel,
+  useSpeech,
+  type LangCode,
+} from "@/lib/speech";
 import { cn } from "@/lib/utils";
 
 export function MuteToggle({ className }: { className?: string }) {
@@ -90,5 +98,75 @@ export function SpeakButton({
     >
       {active ? <Loader2 className="size-5 animate-spin" /> : <Volume2 className="size-5" />}
     </button>
+  );
+}
+
+export function VoicePlaybackControls({ className }: { className?: string }) {
+  const { muted, toggleMuted, volume, setVolume, rate, setRate, isSpeaking, stop } = useSpeech();
+
+  return (
+    <div
+      className={cn(
+        "rounded-3xl border border-border bg-card p-4 shadow-sm",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-card-foreground">Voice playback</p>
+          <p className="text-xs text-muted-foreground">
+            {muted ? "Muted — replies show as text only" : "Replies are spoken aloud automatically"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isSpeaking ? (
+            <button
+              type="button"
+              onClick={stop}
+              className="tap flex h-11 items-center justify-center rounded-2xl border border-border px-3 text-xs font-medium"
+            >
+              Stop
+            </button>
+          ) : null}
+          <MuteToggle />
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            Volume <span>{Math.round(volume * 100)}%</span>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={volume}
+            disabled={muted}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            aria-label="Voice volume"
+            className="tap mt-2 h-11 w-full accent-primary disabled:opacity-50"
+          />
+        </label>
+
+        <label className="block">
+          <span className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            Speed <span>{rate.toFixed(2)}x</span>
+          </span>
+          <input
+            type="range"
+            min={MIN_RATE}
+            max={MAX_RATE}
+            step={0.05}
+            value={rate}
+            disabled={muted}
+            onChange={(e) => setRate(Number(e.target.value))}
+            aria-label="Voice speed"
+            className="tap mt-2 h-11 w-full accent-primary disabled:opacity-50"
+          />
+        </label>
+      </div>
+    </div>
   );
 }
