@@ -2,8 +2,8 @@
  * Unified Transcription Service for MindTalk AI
  *
  * Routes audio transcription to the appropriate provider:
- * - Default: Lovable AI Gateway speech-to-text (works in serverless runtimes)
- * - Twi/Dagbani: Khaya ASR when configured, with gateway fallback
+ * - Default: Gemini (GEMINI_API_KEY) audio understanding — serverless friendly
+ * - Twi/Dagbani and other local languages: Khaya ASR when configured, Gemini fallback
  */
 
 import { transcribeAudio as khayaTranscribe, type AppLangCode } from "./khaya.server";
@@ -15,9 +15,10 @@ export interface TranscriptionResult {
   language: TranscriptionLanguage;
   confidence?: number | undefined;
   verified: boolean;
-  provider: "gateway" | "ghananlp" | "mock";
+  provider: "gemini" | "ghananlp" | "mock";
   warning?: string | undefined;
 }
+
 
 const MIME_BY_FORMAT: Record<string, string> = {
   webm: "audio/webm",
