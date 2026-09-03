@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerativeModel, type SafetySetting } from "@google/generative-ai";
 import {
   CHAT_SYSTEM_PROMPT,
   INSIGHTS_SYSTEM_PROMPT,
@@ -48,7 +48,7 @@ function getModel(
   const client = getGeminiClient();
   return client.getGenerativeModel({
     model: modelName,
-    safetySettings: [...AI_CONFIG.safetySettings],
+    safetySettings: AI_CONFIG.safetySettings as unknown as SafetySetting[],
     systemInstruction,
   });
 }
