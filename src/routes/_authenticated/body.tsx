@@ -138,7 +138,7 @@ function BodyPage() {
             title: r.title,
             content: r.content,
             category: active.key,
-            severity: r.severity ?? "info",
+            severity: r.priority ?? "info",
           })),
         );
         qc.invalidateQueries({ queryKey: ["dashboard"] });

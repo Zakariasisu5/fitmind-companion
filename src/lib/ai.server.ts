@@ -427,7 +427,7 @@ export function extractJson<T>(raw: string, fallback: T): T {
  * Redirects to chatWithAI
  */
 export async function callGateway(body: Record<string, unknown>): Promise<string> {
-  const messages = body.messages as Array<{ role: string; content: string }> | undefined;
+  const messages = body['messages'] as Array<{ role: string; content: string }> | undefined;
   if (!messages || messages.length === 0) {
     throw new AiError(400, "No messages provided");
   }
