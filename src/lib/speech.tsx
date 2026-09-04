@@ -47,7 +47,7 @@ export function hasNativeVoice(code: LangCode) {
 const MUTE_KEY = "mindtalkai.speech.muted";
 const LANG_KEY = "mindtalkai.speech.language";
 
-type SpeakOptions = { id?: string; audioText?: string };
+type SpeakOptions = { id?: string | undefined; audioText?: string | undefined };
 
 type SpeechValue = {
   muted: boolean;

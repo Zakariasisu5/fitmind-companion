@@ -38,14 +38,6 @@ function Landing() {
         playsInline
         aria-hidden
       />
-      {/* Readability overlay */}
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          background: `linear-gradient(180deg, ${INK}b3 0%, ${INK}66 45%, ${INK}e6 100%)`,
-        }}
-        aria-hidden
-      />
 
       {/* Top bar */}
       <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-6 md:px-12">
