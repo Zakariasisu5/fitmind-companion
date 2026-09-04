@@ -49,7 +49,7 @@ function getModel(
   return client.getGenerativeModel({
     model: modelName,
     safetySettings: AI_CONFIG.safetySettings as unknown as SafetySetting[],
-    systemInstruction,
+    ...(systemInstruction ? { systemInstruction } : {}),
   });
 }
 
