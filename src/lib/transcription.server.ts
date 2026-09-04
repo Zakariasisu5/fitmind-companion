@@ -13,10 +13,10 @@ export type TranscriptionLanguage = "en" | "tw" | "ak" | "fat" | "dag" | "dga" |
 export interface TranscriptionResult {
   text: string;
   language: TranscriptionLanguage;
-  confidence?: number;
+  confidence?: number | undefined;
   verified: boolean;
   provider: "whisper" | "ghananlp" | "mock";
-  warning?: string;
+  warning?: string | undefined;
 }
 
 /**

@@ -71,7 +71,7 @@ export function SpeakButton({
   className,
 }: {
   text: string;
-  audioText?: string;
+  audioText?: string | undefined;
   id: string;
   className?: string;
 }) {
