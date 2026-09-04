@@ -74,7 +74,10 @@ function Landing() {
           </span>
         </div>
 
-        <h1 className="mt-6 font-mono text-5xl font-bold leading-[1.02] tracking-tighter md:text-7xl lg:text-8xl">
+        <h1
+          className="mt-6 font-mono text-5xl font-bold leading-[1.02] tracking-tighter md:text-7xl lg:text-8xl"
+          style={{ textShadow: "0 2px 16px rgba(13,31,28,0.7)" }}
+        >
           Your body
           <br />
           speaks.
@@ -82,7 +85,10 @@ function Landing() {
           <span style={{ color: TEAL }}>We listen.</span>
         </h1>
 
-        <p className="mt-6 max-w-xl text-lg leading-relaxed md:text-xl" style={{ color: `${PAPER}b3` }}>
+        <p
+          className="mt-6 max-w-xl text-lg leading-relaxed md:text-xl"
+          style={{ color: `${PAPER}e6`, textShadow: "0 1px 10px rgba(13,31,28,0.7)" }}
+        >
           Voice check-ins, mood and symptom tracking, and AI wellness guidance — private to your account.
         </p>
 
