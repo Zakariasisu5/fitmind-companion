@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerativeModel, type SafetySetting } from "@google/generative-ai";
 import {
   CHAT_SYSTEM_PROMPT,
   INSIGHTS_SYSTEM_PROMPT,
@@ -48,8 +48,8 @@ function getModel(
   const client = getGeminiClient();
   return client.getGenerativeModel({
     model: modelName,
-    safetySettings: AI_CONFIG.safetySettings,
-    systemInstruction,
+    safetySettings: AI_CONFIG.safetySettings as unknown as SafetySetting[],
+    ...(systemInstruction ? { systemInstruction } : {}),
   });
 }
 
@@ -192,7 +192,7 @@ export async function chatWithAI(
       }));
 
       // If history starts with 'model', remove it or prepend a user message
-      if (cleanedHistory.length > 0 && cleanedHistory[0].role === 'model') {
+      if (cleanedHistory.length > 0 && cleanedHistory[0]?.role === 'model') {
         console.warn('[AI] Removing leading model message from history (Gemini requires first message to be from user)');
         cleanedHistory = cleanedHistory.slice(1);
       }
@@ -427,7 +427,7 @@ export function extractJson<T>(raw: string, fallback: T): T {
  * Redirects to chatWithAI
  */
 export async function callGateway(body: Record<string, unknown>): Promise<string> {
-  const messages = body.messages as Array<{ role: string; content: string }> | undefined;
+  const messages = body["messages"] as Array<{ role: string; content: string }> | undefined;
   if (!messages || messages.length === 0) {
     throw new AiError(400, "No messages provided");
   }

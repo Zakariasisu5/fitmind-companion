@@ -156,7 +156,7 @@ function ProfilePage() {
             title: r.title,
             content: r.content,
             category: "report",
-            severity: r.severity ?? "info",
+            severity: r.priority ?? "info",
           })),
         );
       }
